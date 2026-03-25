@@ -28,6 +28,7 @@ const seedMaps: PublicMap[] = [
     floorCount: 3,
     uploadedBy: 'Platform',
     isPublic: true,
+    thumbnail: '/maps/gmch-campus.jpg',
   },
   {
     id: 'geca-aurangabad',
@@ -37,6 +38,7 @@ const seedMaps: PublicMap[] = [
     floorCount: 3,
     uploadedBy: 'Platform',
     isPublic: true,
+    thumbnail: '/maps/geca-location.jpg',
   },
 ];
 
