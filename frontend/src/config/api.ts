@@ -1,5 +1,8 @@
-const base = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
+const rawBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
 
-export const API_BASE = (base && base.length > 0
-  ? base
-  : "http://localhost:5000/api/v1").replace(/\/$/, "");
+// Guard against accidentally pasted quoted values in hosting env vars.
+const normalizedBase = rawBase?.replace(/^['"]+|['"]+$/g, "").trim();
+
+export const API_BASE = (normalizedBase && normalizedBase.length > 0
+  ? normalizedBase
+  : "https://multi-building-pathfinder.onrender.com/api/v1").replace(/\/$/, "");
