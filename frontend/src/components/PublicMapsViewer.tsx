@@ -29,6 +29,15 @@ const seedMaps: PublicMap[] = [
     uploadedBy: 'Platform',
     isPublic: true,
   },
+  {
+    id: 'geca-aurangabad',
+    name: 'Government College of Engineering, Aurangabad',
+    description: 'Multi-building engineering campus',
+    buildingCount: 12,
+    floorCount: 3,
+    uploadedBy: 'Platform',
+    isPublic: true,
+  },
 ];
 
 export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMapsViewerProps) {
