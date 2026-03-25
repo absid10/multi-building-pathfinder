@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { HospitalMap } from "@/components/HospitalMap";
 import { DestinationSelector } from "@/components/DestinationSelector";
 import { findPath, findNearestNode, Node } from "@/utils/pathfinding";
-import { buildingMaps } from "@/data/buildingMaps";
+import { buildingMaps, getMapBuildings } from "@/data/buildingMaps";
 import { CampusMap } from "@/components/CampusMap";
 import { toast } from "sonner";
 import { Building2, ArrowRightCircle, Home, ArrowLeft } from "lucide-react";
@@ -50,6 +50,11 @@ const findNearestStairPair = (
 
 const Index = () => {
   const navigate = useNavigate();
+  const { mapId } = useParams<{ mapId: string }>();
+  
+  // Get map-specific building data
+  const currentMapBuildings = getMapBuildings(mapId || 'gmch-chhatrapati');
+  
   // (State is unchanged)
   const [selectedBuilding, setSelectedBuilding] = useState<BuildingId | null>(null);
   const [currentFloor, setCurrentFloor] = useState<FloorId>("floor1");
@@ -93,7 +98,7 @@ const Index = () => {
     let destBuilding: BuildingId | null = null;
     let destFloor: FloorId | null = null;
 
-    for (const [bKey, bVal] of Object.entries(buildingMaps) as [BuildingId, any][]) {
+    for (const [bKey, bVal] of Object.entries(currentMapBuildings) as [BuildingId, any][]) {
       for (const [fKey, fVal] of Object.entries(bVal.floors) as [FloorId, any][]) {
         if (fVal.pois.some((p: any) => p.id === destinationId)) {
           destBuilding = bKey;
@@ -108,8 +113,8 @@ const Index = () => {
       return;
     }
 
-    const startMap = buildingMaps[selectedBuilding].floors[currentFloor];
-    const targetMap = buildingMaps[destBuilding].floors[destFloor];
+    const startMap = currentMapBuildings[selectedBuilding].floors[currentFloor];
+    const targetMap = currentMapBuildings[destBuilding].floors[destFloor];
     const poi = targetMap.pois.find((p: any) => p.id === destinationId)!;
     // @ts-ignore
     const endNode = targetMap.nodes.find((n: Node) => n.id === poi.node)!;
@@ -133,8 +138,8 @@ const Index = () => {
 
       if (selectedBuilding === "buildingA") {
         // ✅ --- UPGRADED BUILDING A LOGIC --- ✅
-        const mapF1 = buildingMaps.buildingA.floors.floor1;
-        const mapF2 = buildingMaps.buildingA.floors.floor2;
+        const mapF1 = currentMapBuildings.buildingA.floors.floor1;
+        const mapF2 = currentMapBuildings.buildingA.floors.floor2;
         const f1Stairs = ["N_Stairs_1", "N_Stairs_2"];
         const f2Stairs = ["f2_N_Stairs_1", "f2_N_Stairs_2"];
         
@@ -163,9 +168,9 @@ const Index = () => {
         const f2Stairs = ["B_f2_N_Stairs_1", "B_f2_N_Stairs_2"];
         const f3Stairs = ["B_f3_N_Stairs_1", "B_f3_N_Stairs_2"];
         
-        const mapF1 = buildingMaps.buildingB.floors.floor1;
-        const mapF2 = buildingMaps.buildingB.floors.floor2;
-        const mapF3 = buildingMaps.buildingB.floors.floor3;
+        const mapF1 = currentMapBuildings.buildingB.floors.floor1;
+        const mapF2 = currentMapBuildings.buildingB.floors.floor2;
+        const mapF3 = currentMapBuildings.buildingB.floors.floor3;
 
         // F1 -> F2
         if (currentFloor === "floor1" && destFloor === "floor2") {
@@ -255,8 +260,8 @@ const Index = () => {
       finalActiveFloors = ["floor1"];
     } else if (currentFloor === "floor2") {
       // F2 -> F1 -> Exit
-      const mapF2 = buildingMaps[selectedBuilding].floors.floor2;
-      const mapF1 = buildingMaps[selectedBuilding].floors.floor1;
+      const mapF2 = currentMapBuildings[selectedBuilding].floors.floor2;
+      const mapF1 = currentMapBuildings[selectedBuilding].floors.floor1;
       const startNodeF2 = findNearestNode(location, mapF2.nodes);
       
       const { exitNode: exitF2, entryNode: entryF1 } = (selectedBuilding === "buildingA")
@@ -274,9 +279,9 @@ const Index = () => {
       finalActiveFloors = ["floor2", "floor1"];
     } else {
       // F3 -> F2 -> F1 -> Exit (Only Building B has a Floor 3)
-      const mapF3 = buildingMaps.buildingB.floors.floor3;
-      const mapF2 = buildingMaps.buildingB.floors.floor2;
-      const mapF1 = buildingMaps.buildingB.floors.floor1;
+      const mapF3 = currentMapBuildings.buildingB.floors.floor3;
+      const mapF2 = currentMapBuildings.buildingB.floors.floor2;
+      const mapF1 = currentMapBuildings.buildingB.floors.floor1;
       const startNodeF3 = findNearestNode(location, mapF3.nodes);
 
       const { exitNode: exitF3, entryNode: entryF2 } = findNearestStairPair(startNodeF3, b_f3Stairs, b_f2Stairs, mapF3, mapF2);
@@ -296,7 +301,7 @@ const Index = () => {
     }
 
     const sourceExitNode =
-      buildingMaps[selectedBuilding].floors["floor1"].nodes.find((n: Node) => n.id === sourceExitNodeId)!;
+      currentMapBuildings[selectedBuilding].floors["floor1"].nodes.find((n: Node) => n.id === sourceExitNodeId)!;
 
     setFullPath(combined);
     setDestinationNode(sourceExitNode);
@@ -330,7 +335,7 @@ const Index = () => {
 
     if (pendingBuildingTransition && picked === pendingBuildingTransition.destBuilding) {
       const entryF1 =
-        buildingMaps[picked].floors["floor1"].nodes.find(
+        currentMapBuildings[picked].floors["floor1"].nodes.find(
           (n: Node) => n.id === pendingBuildingTransition.entryNodeId
         )!;
       setCurrentFloor("floor1");
@@ -341,9 +346,9 @@ const Index = () => {
       let segments: Node[] = [];
       let finalActiveFloors: string[] = [];
       
-      const mapF1 = buildingMaps[picked].floors.floor1;
-      const mapF2 = buildingMaps[picked].floors.floor2;
-      const mapF3 = buildingMaps[picked].floors.floor3; // Will be undefined for Building A
+      const mapF1 = currentMapBuildings[picked].floors.floor1;
+      const mapF2 = currentMapBuildings[picked].floors.floor2;
+      const mapF3 = currentMapBuildings[picked].floors.floor3; // Will be undefined for Building A
 
       if (destFloor === "floor1") {
         // @ts-ignore
@@ -433,7 +438,7 @@ const Index = () => {
     );
   }
 
-  const currentMap = buildingMaps[selectedBuilding].floors[currentFloor];
+  const currentMap = currentMapBuildings[selectedBuilding].floors[currentFloor];
   if (!currentMap) {
     return (
       <div className="min-h-screen bg-background p-8">

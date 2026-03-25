@@ -1,17 +1,16 @@
 // src/data/buildingMaps.ts
 import { floor1Map, floor2Map } from "./hospitalMap";
 import { floor1MapB, floor2MapB, floor3MapB } from "./hospitalMapB";
-import { campusMapData } from "./campusMapData"; // ✅ --- IMPORT THE NEW CAMPUS MAP
+import { campusMapData } from "./campusMapData";
 
 /**
- * 🔹 Main Building Map Registry
+ * 🔹 Map-specific building data
  */
-export const buildingMaps = {
-  // ✅ --- ADD CAMPUS MAP
+const gmchBuildings = {
   campus: {
     name: "Main Campus",
     floors: {
-      "floor1": campusMapData, // Campus only has one "floor"
+      "floor1": campusMapData,
     }
   },
   buildingA: {
@@ -30,6 +29,56 @@ export const buildingMaps = {
     },
   },
 };
+
+const gecaBuildings = {
+  campus: {
+    name: "GECA Campus",
+    floors: {
+      "floor1": campusMapData, // Placeholder
+    }
+  },
+  buildingA: {
+    name: "Building A",
+    floors: {
+      floor1: floor1Map,
+      floor2: floor2Map,
+    },
+  },
+  buildingB: {
+    name: "Building B",
+    floors: {
+      floor1: floor1MapB,
+      floor2: floor2MapB,
+      floor3: floor3MapB,
+    },
+  },
+};
+
+/**
+ * 🔹 Map registry
+ */
+export const mapRegistry = {
+  'gmch-chhatrapati': {
+    name: 'GMCH Chhatrapati Sambhajinagar',
+    buildings: gmchBuildings,
+  },
+  'geca-aurangabad': {
+    name: 'Government College of Engineering, Aurangabad',
+    buildings: gecaBuildings,
+  },
+};
+
+/**
+ * 🔹 Get buildings for a specific map
+ */
+export const getMapBuildings = (mapId: string = 'gmch-chhatrapati') => {
+  return mapRegistry[mapId as keyof typeof mapRegistry]?.buildings || gmchBuildings;
+};
+
+/**
+ * 🔹 Main Building Map Registry (for backward compatibility)
+ */
+export const buildingMaps = gmchBuildings;
 
 /**
  * 🏗️ Inter-building edges
