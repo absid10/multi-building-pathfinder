@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Building2, MapPin, Search, Navigation } from 'lucide-react';
 import { API_BASE } from '../config/api';
+import CampusPreview from './CampusPreview';
 
 export interface PublicMap {
   id: string;
@@ -150,18 +151,19 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
               </div>
             </div>
 
-            {selectedMap.thumbnail ? (
-              <div className="mb-6 overflow-hidden rounded-lg">
-                <img src={selectedMap.thumbnail} alt={selectedMap.name} className="h-64 w-full object-cover" />
-              </div>
-            ) : (
-              <div className="mb-6 flex h-64 items-center justify-center rounded-lg bg-gray-100">
-                <div className="text-center text-gray-500">
-                  <Building2 className="mx-auto mb-2 h-16 w-16 opacity-30" />
-                  <p>Map preview not available</p>
+            <div className="mb-6">
+              {selectedMap.thumbnail ? (
+                <div className="overflow-hidden rounded-lg">
+                  <img src={selectedMap.thumbnail} alt={selectedMap.name} className="h-64 w-full object-cover" />
                 </div>
-              </div>
-            )}
+              ) : (
+                <CampusPreview
+                  mapName={selectedMap.name}
+                  buildingCount={selectedMap.buildingCount}
+                  floorCount={selectedMap.floorCount}
+                />
+              )}
+            </div>
 
             <button
               onClick={() => {
