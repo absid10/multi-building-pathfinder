@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+
+    <title>Hospital Indoor Navigation | Find Your Way</title>
+    <meta name="description" content="Interactive hospital floor navigation system with real-time pathfinding. Find directions to Radiology, Pharmacy, Emergency, and more." />
+    <meta name="author" content="Lovable" />
+
+    <meta property="og:title" content="Hospital Indoor Navigation" />
+    <meta property="og:description" content="Interactive hospital floor navigation system with real-time pathfinding" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@lovable_dev" />
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <script>
+      // Fix 100vh on mobile (for dynamic address bar)
+      function setVh() {
+        document.documentElement.style.setProperty(
+          "--vh",
+          window.innerHeight * 0.01 + "px"
+        );
+      }
+      window.addEventListener("resize", setVh);
+      window.addEventListener("orientationchange", setVh);
+      setVh();
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
