@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Building2, MapPin } from 'lucide-react';
+import { Building2, MapPin, Search, Navigation } from 'lucide-react';
 import { API_BASE } from '../config/api';
 
 export interface PublicMap {
@@ -42,6 +42,7 @@ const seedMaps: PublicMap[] = [
 export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMapsViewerProps) {
   const [apiMaps, setApiMaps] = useState<PublicMap[]>([]);
   const [selectedMapId, setSelectedMapId] = useState(seedMaps[0].id);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     const loadPublicMaps = async () => {
@@ -74,7 +75,17 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
     return Array.from(byId.values());
   }, [apiMaps]);
 
-  const selectedMap = maps.find((m) => m.id === selectedMapId) || maps[0] || null;
+  const filteredMaps = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return maps;
+    return maps.filter((m) => `${m.name} ${m.description} ${m.uploadedBy}`.toLowerCase().includes(q));
+  }, [maps, query]);
+
+  const selectedMap = filteredMaps.find((m) => m.id === selectedMapId)
+    || maps.find((m) => m.id === selectedMapId)
+    || filteredMaps[0]
+    || maps[0]
+    || null;
 
   useEffect(() => {
     if (selectedMap) onSelectMap(selectedMap);
@@ -82,58 +93,71 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <label className="block text-lg font-semibold text-gray-900 mb-2">
-          Publicly Accessible Maps
-        </label>
-        <p className="text-sm text-gray-600 mb-3">Select a map</p>
-        <select
-          value={selectedMap?.id || ''}
-          onChange={(e) => setSelectedMapId(e.target.value)}
-          className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
-        >
-          <option value="">-- Select a map --</option>
-          {maps.map((map) => (
-            <option key={map.id} value={map.id}>
-              {map.name}
-            </option>
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <label className="mb-2 block text-lg font-semibold text-gray-900">Publicly Accessible Maps</label>
+        <p className="mb-4 text-sm text-gray-600">Search maps and choose one to start wayfinding.</p>
+
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by map name, description, or uploader"
+            className="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-blue-500"
+          />
+        </div>
+
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {filteredMaps.map((map) => (
+            <button
+              key={map.id}
+              onClick={() => setSelectedMapId(map.id)}
+              className={`rounded-xl border p-3 text-left transition ${
+                selectedMap?.id === map.id
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-slate-200 bg-white hover:border-slate-300'
+              }`}
+            >
+              <p className="font-semibold text-slate-800">{map.name}</p>
+              <p className="mt-1 text-xs text-slate-500">{map.description}</p>
+            </button>
           ))}
-        </select>
+        </div>
       </div>
 
       {selectedMap && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
-            <h2 className="text-3xl font-bold mb-2">{selectedMap.name}</h2>
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-6 text-white">
+            <h2 className="mb-2 text-3xl font-bold">{selectedMap.name}</h2>
             <p className="text-blue-100">{selectedMap.description}</p>
           </div>
 
           <div className="p-6">
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="bg-blue-50 rounded-lg p-4 text-center">
-                <Building2 className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="rounded-lg bg-blue-50 p-4 text-center">
+                <Building2 className="mx-auto mb-2 h-8 w-8 text-blue-600" />
                 <p className="text-2xl font-bold text-gray-900">{selectedMap.buildingCount}</p>
                 <p className="text-sm text-gray-600">Buildings</p>
               </div>
-              <div className="bg-green-50 rounded-lg p-4 text-center">
-                <MapPin className="w-8 h-8 text-green-600 mx-auto mb-2" />
+              <div className="rounded-lg bg-emerald-50 p-4 text-center">
+                <MapPin className="mx-auto mb-2 h-8 w-8 text-emerald-600" />
                 <p className="text-2xl font-bold text-gray-900">{selectedMap.floorCount}</p>
                 <p className="text-sm text-gray-600">Floors</p>
               </div>
-              <div className="bg-amber-50 rounded-lg p-4 text-center">
+              <div className="rounded-lg bg-amber-50 p-4 text-center">
                 <p className="text-2xl font-bold text-gray-900">✓</p>
                 <p className="text-sm text-gray-600">By {selectedMap.uploadedBy}</p>
               </div>
             </div>
 
             {selectedMap.thumbnail ? (
-              <div className="mb-6 rounded-lg overflow-hidden">
-                <img src={selectedMap.thumbnail} alt={selectedMap.name} className="w-full h-64 object-cover" />
+              <div className="mb-6 overflow-hidden rounded-lg">
+                <img src={selectedMap.thumbnail} alt={selectedMap.name} className="h-64 w-full object-cover" />
               </div>
             ) : (
-              <div className="mb-6 bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+              <div className="mb-6 flex h-64 items-center justify-center rounded-lg bg-gray-100">
                 <div className="text-center text-gray-500">
-                  <Building2 className="w-16 h-16 mx-auto mb-2 opacity-30" />
+                  <Building2 className="mx-auto mb-2 h-16 w-16 opacity-30" />
                   <p>Map preview not available</p>
                 </div>
               </div>
@@ -148,8 +172,9 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
                 }
                 onSelectMap(selectedMap);
               }}
-              className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
             >
+              <Navigation className="h-5 w-5" />
               Explore Map
             </button>
           </div>
