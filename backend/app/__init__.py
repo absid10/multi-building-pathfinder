@@ -17,6 +17,7 @@ def _cors_origins_from_env() -> list[str]:
         r"http://localhost:\\d+",
         r"http://127\\.0\\.0\\.1:\\d+",
         r"http://192\\.168\\.\\d+\\.\\d+:\\d+",
+        r"https://.*\\.vercel\\.app",
     ]
     if not configured:
         return default_origins
