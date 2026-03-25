@@ -29,15 +29,6 @@ const seedMaps: PublicMap[] = [
     uploadedBy: 'Platform',
     isPublic: true,
   },
-  {
-    id: 'current-hospital-demo',
-    name: 'Current Hospital Demo Map',
-    description: 'OPD + Casualty multi-building demo map',
-    buildingCount: 2,
-    floorCount: 3,
-    uploadedBy: 'Platform',
-    isPublic: true,
-  },
 ];
 
 export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMapsViewerProps) {
