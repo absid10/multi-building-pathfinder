@@ -6,7 +6,7 @@ from typing import Any
 
 from app.services.map_parser import parse_map
 
-SUPPORTED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".pdf"}
+SUPPORTED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".pdf", ".svg", ".js"}
 
 
 def _project_root() -> Path:
@@ -74,7 +74,12 @@ def _find_sample_files() -> list[tuple[Path, str]]:
             if not item.is_file():
                 continue
             is_supported = item.suffix.lower() in SUPPORTED_EXTENSIONS
-            is_gmch_reference = source != "reference" or item.name.lower().startswith("gmch")
+            lower_name = item.name.lower()
+            is_gmch_reference = source != "reference" or (
+                lower_name.startswith("gmch")
+                or "gmch" in lower_name
+                or "leaflet" in lower_name
+            )
             if is_supported and is_gmch_reference:
                 candidates.append((item, source))
 

@@ -234,6 +234,12 @@ def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
 
     if ext == ".pdf":
         text = _extract_pdf_text(file_path)
+    elif ext in {".svg", ".js"}:
+        try:
+            raw = Path(file_path).read_text(encoding="utf-8", errors="ignore")
+            text = f"Map source file: {os.path.basename(file_path)}\n{raw[:12000]}"
+        except Exception:
+            text = f"Map source file: {os.path.basename(file_path)}"
     else:
         # For images, OCR can be added here. For now we parse metadata-ish fallback text.
         text = f"Image map file: {os.path.basename(file_path)}"

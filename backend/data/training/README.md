@@ -7,8 +7,8 @@ This folder stores the local training catalog and lightweight layout model used 
 - `layout_model.json`: Trained priors (average building/floor counts + keyword priors).
 
 ## Add More Layouts (including web-sourced plans)
-1. Save map files (`.png`, `.jpg`, `.jpeg`, `.pdf`) to either:
-   - `frontend/public/maps/` using `gmch*` file naming for reference maps
+1. Save map files (`.png`, `.jpg`, `.jpeg`, `.pdf`, `.svg`, `.js`) to either:
+   - `frontend/public/maps/` using GMCH/Leaflet assets (`gmch*`, `*leaflet*`) for reference maps
    - `backend/uploads/` (uploaded user maps)
 2. Run:
 
