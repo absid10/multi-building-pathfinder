@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Building2, MapPin, Search, Navigation } from 'lucide-react';
 import { API_BASE } from '../config/api';
+import { SITE_OWNER_NAME } from '../config/site';
 import CampusPreview from './CampusPreview';
 
 export interface PublicMap {
@@ -23,10 +24,10 @@ const seedMaps: PublicMap[] = [
   {
     id: 'gmch-chhatrapati',
     name: 'GMCH Chhatrapati Sambhajinagar',
-    description: 'Publicly accessible map',
+    description: 'Government Hospital Map Chh. Sambhajinagar',
     buildingCount: 2,
     floorCount: 3,
-    uploadedBy: 'Platform',
+    uploadedBy: SITE_OWNER_NAME,
     isPublic: true,
     thumbnail: '/maps/gmch-campus.jpg',
   },
@@ -36,7 +37,7 @@ const seedMaps: PublicMap[] = [
     description: 'Multi-building engineering campus',
     buildingCount: 12,
     floorCount: 3,
-    uploadedBy: 'Platform',
+    uploadedBy: SITE_OWNER_NAME,
     isPublic: true,
     thumbnail: '/maps/geca-location.jpg',
   },
@@ -122,7 +123,9 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
               }`}
             >
               <p className="font-semibold text-slate-800 dark:text-slate-100">{map.name}</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{map.description}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                {map.description} - Uploaded by {map.uploadedBy}
+              </p>
             </button>
           ))}
         </div>
@@ -132,7 +135,7 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-sm dark:border-slate-800">
           <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-6 text-white">
             <h2 className="mb-2 text-3xl font-bold">{selectedMap.name}</h2>
-            <p className="text-blue-100">{selectedMap.description}</p>
+            <p className="text-blue-100">{selectedMap.description} -- Uploaded by {selectedMap.uploadedBy}</p>
           </div>
 
           <div className="p-6">
