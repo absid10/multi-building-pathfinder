@@ -1,100 +1,123 @@
-# Smart Hospital Navigation
+# Smart Hospital Navigation and Multi-Building Indoor Wayfinder
 
-Indoor wayfinding platform for hospitals and multi-building campuses, with map upload, AI-assisted map parsing, route generation, and shareable navigation.
+Full-stack indoor navigation system for hospitals and campus-style environments with map upload, AI-assisted parsing, route generation, and map sharing workflows.
 
-## Overview
+![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61dafb?logo=react)
+![Backend](https://img.shields.io/badge/Backend-Flask-000000?logo=flask)
+![Database](https://img.shields.io/badge/Database-SQLAlchemy%20%2F%20PostgreSQL-336791?logo=postgresql)
+![Queue](https://img.shields.io/badge/Queue-Redis%20%2B%20RQ-dc382d?logo=redis)
+![Status](https://img.shields.io/badge/Status-Active%20Development-success)
 
-This repository contains a full-stack implementation with:
+## What this project includes
 
-- A React + Vite frontend for map browsing, navigation, upload management, and admin workflows.
-- A Flask backend for auth, map upload lifecycle, analysis orchestration, and navigation graph APIs.
-- A lightweight local training pipeline that maintains a training-map catalog and retrainable layout priors.
+- Interactive multi-building and multi-floor wayfinding UI.
+- A* graph-based routing for seeded and uploaded maps.
+- Upload pipeline for PNG, JPG, and PDF map files.
+- Analysis queue support with fallback inline processing when Redis/RQ is unavailable.
+- Uploaded map management: explore, rename, private/public, delete.
+- Training pipeline for map-layout priors with dashboard visibility.
+- About, Future Enhancements, Contact, and Support sections integrated into the product UI.
 
-The project currently supports:
+## Table of Contents
 
-- Seeded map navigation (GMCH and GECA campus flows).
-- Uploaded map lifecycle: upload, analysis status, privacy toggle, rename, delete, and explore.
-- Uploaded map explorer route for traversing generated nodes, POIs, and paths.
-- Public map discovery and explore entry points.
+- [System Overview](#system-overview)
+- [Feature Highlights](#feature-highlights)
+- [Architecture](#architecture)
+- [Repository Layout](#repository-layout)
+- [API Endpoints](#api-endpoints)
+- [Run Locally](#run-locally)
+- [Training Pipeline](#training-pipeline)
+- [Deployment](#deployment)
+- [Screens and User Flows](#screens-and-user-flows)
+- [Troubleshooting](#troubleshooting)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
 
-## Repository Structure
+## System Overview
+
+The platform has two major layers:
+
+1. Frontend application
+	 - React + TypeScript SPA
+	 - Map interaction, routing, upload management, training panel, and documentation pages
+
+2. Backend application
+	 - Flask API with SQLAlchemy
+	 - Authentication, map upload lifecycle, analysis orchestration, and graph-serving endpoints
+
+Map analysis supports two execution modes:
+
+- Primary: Redis + RQ worker queue
+- Fallback: inline analysis in API process if queue is unreachable
+
+This allows local development and production deployments to remain usable under different infra conditions.
+
+## Feature Highlights
+
+### Indoor Navigation
+
+- Multi-floor route computation using A*.
+- Building-to-building transitions in seeded maps.
+- Destination selection by POI.
+- Route rendering and live navigation guidance.
+
+### Uploaded Map Experience
+
+- Upload map files from dashboard.
+- Polling-based status updates from analyzing to ready.
+- Explore analyzed uploaded maps in dedicated route:
+	- /navigate/upload/:mapId
+- Rename map directly from dashboard card.
+- Toggle private/public visibility.
+- Delete map with ownership checks.
+
+### AI and Training
+
+- Local training map catalog (reference files + uploads).
+- Retrainable lightweight layout model.
+- Model priors used in heuristic parser when AI inference is unavailable.
+- Training panel shows sample count, source split, and retrain action.
+
+## Architecture
+
+### Frontend
+
+- React, TypeScript, Vite
+- Tailwind CSS
+- React Router
+- Lucide Icons
+
+### Backend
+
+- Flask app factory pattern
+- SQLAlchemy models
+- Flask-Migrate
+- Redis + RQ (optional queue path)
+- OpenAI SDK integration (optional)
+- PyMuPDF for PDF text extraction
+
+### Routing and Data Model
+
+- Graph entities: nodes, edges, POIs
+- Route engine: A* over weighted edges
+- Uploaded map analysis result persisted as JSON graph payload
+
+## Repository Layout
 
 ```text
 smart-hospital-navigation/
 |- frontend/                  # React + Vite + TypeScript client
-|- backend/                   # Flask API + SQLAlchemy + map analysis services
-|- docs/                      # Additional product and planning docs
-|- references for frontend/   # Sample map PDFs used for training/analysis bootstrap
-|- vercel.json                # Frontend deployment config for Vercel
+|- backend/                   # Flask API, models, services, scripts
+|- docs/                      # Project docs and plans
+|- references for frontend/   # Reference PDFs for parser/training bootstrap
+|- vercel.json                # Monorepo deploy config for frontend
+|- srsdoc.md                  # Full SRS document for this project
 `- README.md
 ```
 
-## Core Features
+## API Endpoints
 
-### Navigation
-
-- Multi-building and multi-floor indoor navigation.
-- A* pathfinding engine on graph nodes/edges.
-- POI-based destination selection.
-- Floor transition and cross-building route handling.
-- Campus view with map-specific behavior.
-
-### Upload and Analysis
-
-- Upload PNG/JPG/PDF floor plans.
-- Async analysis through Redis + RQ when available.
-- Automatic inline fallback analysis when queue infra is unavailable.
-- Status polling in dashboard for smooth analyzing -> ready transitions.
-
-### Uploaded Map Management
-
-- View uploaded maps in dashboard.
-- Rename uploaded maps.
-- Toggle public/private visibility.
-- Delete maps.
-- Explore analyzed uploaded maps through dedicated route:
-	- /navigate/upload/:mapId
-
-### AI Training Workflow
-
-- Maintains local training catalog from:
-	- references for frontend/
-	- backend/uploads/
-- Produces retrainable lightweight layout model at:
-	- backend/data/training/layout_model.json
-- Exposes training overview and retrain APIs.
-- Includes dashboard panel listing training maps and model stats.
-
-## Tech Stack
-
-### Frontend
-
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- React Router
-- Lucide icons
-
-### Backend
-
-- Flask
-- SQLAlchemy
-- Flask-Migrate
-- Redis + RQ
-- PyMuPDF
-- OpenAI SDK (optional, configurable)
-
-### Data and Algorithms
-
-- Graph-based routing model (nodes, edges, POIs)
-- A* pathfinding
-- Heuristic parser with optional OpenAI enhancement
-- Local training priors for building/floor inference
-
-## API Summary
-
-Base: /api/v1
+Base path: /api/v1
 
 ### Health and Core
 
@@ -104,7 +127,7 @@ Base: /api/v1
 - GET /floors/{floorId}/map
 - POST /routes
 
-### Auth
+### Authentication
 
 - POST /auth/signup
 - POST /auth/login
@@ -118,8 +141,8 @@ Base: /api/v1
 - GET /maps/public
 - GET /maps/{mapId}
 - GET /maps/{mapId}/status
-- PATCH /maps/{mapId}/privacy
 - PATCH /maps/{mapId}/name
+- PATCH /maps/{mapId}/privacy
 - DELETE /maps/{mapId}
 
 ### Training
@@ -127,9 +150,9 @@ Base: /api/v1
 - GET /maps/training
 - POST /maps/training/retrain
 
-## Local Development
+## Run Locally
 
-## 1) Backend
+### Backend setup
 
 ```powershell
 cd smart-hospital-navigation\backend
@@ -141,9 +164,9 @@ python scripts\migrate_db.py
 python run.py
 ```
 
-Backend runs on http://localhost:5000.
+API default URL: http://localhost:5000
 
-Optional worker process (separate terminal):
+Optional worker (second terminal):
 
 ```powershell
 cd smart-hospital-navigation\backend
@@ -151,7 +174,7 @@ cd smart-hospital-navigation\backend
 python scripts\run_worker.py
 ```
 
-## 2) Frontend
+### Frontend setup
 
 ```powershell
 cd smart-hospital-navigation\frontend
@@ -159,15 +182,15 @@ npm install
 npm run dev
 ```
 
-Set frontend API base in frontend/.env (if needed):
+Optional frontend env file:
 
 ```text
 VITE_API_BASE_URL=http://localhost:5000/api/v1
 ```
 
-## Training Utilities
+## Training Pipeline
 
-Bootstrap catalog and train local layout model:
+Bootstrap catalog and retrain local layout model:
 
 ```powershell
 cd smart-hospital-navigation\backend
@@ -175,55 +198,70 @@ cd smart-hospital-navigation\backend
 .venv\Scripts\python.exe scripts\train_layout_model.py
 ```
 
-Training artifacts:
+Generated artifacts:
 
 - backend/data/training/catalog.json
 - backend/data/training/layout_model.json
 - backend/data/training/README.md
 
-## Deployment Notes
+## Deployment
 
-### Frontend (Vercel)
+### Frontend on Vercel
 
-The repository includes root vercel.json configured for monorepo frontend build targeting frontend/.
+This repository includes root-level vercel.json to deploy the frontend app from monorepo context.
 
-Required env on hosting:
+Required environment variable:
 
 - VITE_API_BASE_URL=https://<your-backend-domain>/api/v1
 
-### Backend
+### Backend deployment
 
-Deploy Flask backend to your preferred host (Render, Railway, Azure, etc.) with:
+Deploy backend with the following env variables at minimum:
 
 - DATABASE_URL
 - SECRET_KEY
-- REDIS_URL (optional but recommended for queue)
+- REDIS_URL (recommended)
 - OPENAI_API_KEY (optional)
 - OPENAI_MODEL
 
-## Current Product Pages
+## Screens and User Flows
 
-- Landing page with map exploration entry.
-- Dashboard with public maps and your maps tabs.
-- About page.
-- Future Enhancements page.
-- Contact page with email, GitHub, and LinkedIn links.
+- Landing: browse public maps and navigate.
+- Dashboard: manage uploads and training panel.
+- Uploaded map cards: explore, rename, privacy toggle, delete.
+- Uploaded navigator route for generated map graph traversal.
+- About / Future / Contact / Support access from header and footer.
 
-## Known Gaps and Next Priorities
+## Troubleshooting
 
-- Improve OCR for image-only maps before graph extraction.
-- Add stronger graph quality validation for uploaded maps.
-- Add role-based moderation for public map publication.
-- Add e2e integration tests for upload -> analyze -> navigate flow.
-- Add chunk splitting strategy for frontend bundle optimization.
+- Upload shows analyzing for long duration:
+	- verify backend API is running
+	- verify Redis worker if queue mode is expected
+	- system should fallback inline if queue is unavailable
+
+- Explore does not open uploaded map:
+	- restart backend after pulling latest changes to load new endpoints
+	- ensure map status is analyzed
+
+- Auth requests timeout locally:
+	- confirm backend .env and DB initialization
+	- run migration script before starting API
+
+## Roadmap
+
+- Better OCR for image-only floorplans.
+- CAD/BIM ingestion pipeline for richer geometry extraction.
+- Role-based moderation for public maps.
+- End-to-end integration tests for upload to navigation journey.
+- Frontend code-splitting for large bundle optimization.
+- AR-guided indoor navigation and advanced indoor positioning.
 
 ## Contributing
 
 1. Create a feature branch.
-2. Make focused commits.
-3. Run backend and frontend validation locally.
+2. Keep commits focused and testable.
+3. Validate frontend and backend locally.
 4. Open PR with screenshots for UI-impacting updates.
 
-## License
-
-Internal/academic project usage unless explicitly relicensed.
+---
+Project by Abdullah Ahmed Siddiqui
