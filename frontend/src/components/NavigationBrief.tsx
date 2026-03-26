@@ -46,6 +46,15 @@ export const NavigationBrief = ({
         </div>
       </div>
 
+      {trackingEnabled && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
+          <p className="text-xs uppercase tracking-wide text-amber-700 mb-1">Live tracing status</p>
+          <p className="text-sm font-medium text-amber-900">
+            This feature is yet to be implemented. Current values below are route estimates only.
+          </p>
+        </div>
+      )}
+
       <div className="grid gap-3 md:grid-cols-3">
         <div className="rounded-lg border border-border p-3 bg-background/70">
           <div className="text-xs text-muted-foreground flex items-center gap-2">
@@ -63,7 +72,9 @@ export const NavigationBrief = ({
           <div className="text-xs text-muted-foreground flex items-center gap-2">
             <MapPinned className="w-3.5 h-3.5" /> Remaining
           </div>
-          <p className="text-xl font-semibold">{remainingDistanceFt} ft • {etaMinutes} min</p>
+          <p className="text-xl font-semibold">
+            {trackingEnabled ? "Not available (tracking pending)" : `${remainingDistanceFt} ft • ${etaMinutes} min`}
+          </p>
         </div>
       </div>
 
@@ -71,7 +82,9 @@ export const NavigationBrief = ({
         <p className="text-xs uppercase tracking-wide text-primary mb-1 flex items-center gap-2">
           <Compass className="w-3.5 h-3.5" /> Next instruction
         </p>
-        <p className="font-medium text-foreground">{nextInstruction}</p>
+        <p className="font-medium text-foreground">
+          {trackingEnabled ? "Live tracing is yet to be implemented." : nextInstruction}
+        </p>
       </div>
     </section>
   );
