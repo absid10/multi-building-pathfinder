@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Menu, X, LogOut, MapIcon, Home, LayoutDashboard } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Menu, X, LogOut, MapIcon, Home, LayoutDashboard, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import LoginModal from './LoginModal';
@@ -9,6 +9,25 @@ export default function Header() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldUseDark = savedTheme ? savedTheme === 'dark' : prefersDark;
+    setIsDarkMode(shouldUseDark);
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   const handleLogout = () => {
     logout();
@@ -28,6 +47,16 @@ export default function Header() {
             <MapIcon className="w-6 h-6" />
             <h1 className="text-2xl font-bold">Multi-Building Indoor Wayfinder</h1>
           </div>
+
+          <button
+            onClick={() => setIsDarkMode((prev) => !prev)}
+            className="hidden md:inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20 transition"
+            aria-label="Toggle light and dark mode"
+            title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {isDarkMode ? 'Light' : 'Dark'}
+          </button>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-4">
@@ -127,6 +156,13 @@ export default function Header() {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden bg-blue-700 px-4 py-3 border-t border-blue-600 space-y-3">
+            <button
+              onClick={() => setIsDarkMode((prev) => !prev)}
+              className="w-full flex items-center justify-center gap-2 rounded-lg border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20 transition"
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            </button>
             {isLoggedIn && user ? (
               <>
                 <div className="text-sm pb-3 border-b border-blue-600">
