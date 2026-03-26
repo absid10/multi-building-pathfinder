@@ -96,17 +96,17 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <label className="mb-2 block text-lg font-semibold text-gray-900">Publicly Accessible Maps</label>
-        <p className="mb-4 text-sm text-gray-600">Search maps and choose one to start wayfinding.</p>
+      <div className="rounded-2xl border border-slate-200 bg-card p-6 shadow-sm dark:border-slate-800">
+        <label className="mb-2 block text-lg font-semibold text-foreground">Publicly Accessible Maps</label>
+        <p className="mb-4 text-sm text-muted-foreground">Search maps and choose one to start wayfinding.</p>
 
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+          <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400 dark:text-slate-400" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by map name, description, or uploader"
-            className="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-blue-500"
+            className="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
           />
         </div>
 
@@ -117,19 +117,19 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
               onClick={() => setSelectedMapId(map.id)}
               className={`rounded-xl border p-3 text-left transition ${
                 selectedMap?.id === map.id
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-slate-200 bg-white hover:border-slate-300'
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40'
+                  : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/40 dark:hover:border-slate-700'
               }`}
             >
-              <p className="font-semibold text-slate-800">{map.name}</p>
-              <p className="mt-1 text-xs text-slate-500">{map.description}</p>
+              <p className="font-semibold text-slate-800 dark:text-slate-100">{map.name}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{map.description}</p>
             </button>
           ))}
         </div>
       </div>
 
       {selectedMap && (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-sm dark:border-slate-800">
           <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-6 text-white">
             <h2 className="mb-2 text-3xl font-bold">{selectedMap.name}</h2>
             <p className="text-blue-100">{selectedMap.description}</p>
@@ -137,19 +137,19 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
 
           <div className="p-6">
             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="rounded-lg bg-blue-50 p-4 text-center">
+              <div className="rounded-lg bg-blue-50 p-4 text-center dark:bg-blue-950/40">
                 <Building2 className="mx-auto mb-2 h-8 w-8 text-blue-600" />
-                <p className="text-2xl font-bold text-gray-900">{selectedMap.buildingCount}</p>
-                <p className="text-sm text-gray-600">Buildings</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{selectedMap.buildingCount}</p>
+                <p className="text-sm text-gray-600 dark:text-slate-300">Buildings</p>
               </div>
-              <div className="rounded-lg bg-emerald-50 p-4 text-center">
+              <div className="rounded-lg bg-emerald-50 p-4 text-center dark:bg-emerald-950/40">
                 <MapPin className="mx-auto mb-2 h-8 w-8 text-emerald-600" />
-                <p className="text-2xl font-bold text-gray-900">{selectedMap.floorCount}</p>
-                <p className="text-sm text-gray-600">Floors</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{selectedMap.floorCount}</p>
+                <p className="text-sm text-gray-600 dark:text-slate-300">Floors</p>
               </div>
-              <div className="rounded-lg bg-amber-50 p-4 text-center">
-                <p className="text-2xl font-bold text-gray-900">✓</p>
-                <p className="text-sm text-gray-600">By {selectedMap.uploadedBy}</p>
+              <div className="rounded-lg bg-amber-50 p-4 text-center dark:bg-amber-950/40">
+                <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">✓</p>
+                <p className="text-sm text-gray-600 dark:text-slate-300">By {selectedMap.uploadedBy}</p>
               </div>
             </div>
 

@@ -31,7 +31,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="bg-slate-50">
+    <div className="bg-background text-foreground transition-colors">
       <div className="mx-auto max-w-7xl px-4 pt-10 pb-16">
         <div className="relative overflow-hidden rounded-3xl border border-sky-100 bg-gradient-to-br from-sky-600 via-blue-700 to-cyan-700 p-10 text-white shadow-2xl">
           <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
@@ -64,20 +64,20 @@ export default function LandingPage() {
         </div>
 
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+          <div className="rounded-2xl border border-sky-100/70 bg-card p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-sky-900/40">
             <MapPin className="mb-4 h-12 w-12 text-sky-600" />
-            <h3 className="mb-2 text-lg font-semibold text-gray-900">Precise Navigation</h3>
-            <p className="text-sm text-gray-600">Get turn-by-turn directions with distance and time estimates</p>
+            <h3 className="mb-2 text-lg font-semibold text-foreground">Precise Navigation</h3>
+            <p className="text-sm text-muted-foreground">Get turn-by-turn directions with distance and time estimates</p>
           </div>
-          <div className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+          <div className="rounded-2xl border border-sky-100/70 bg-card p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-sky-900/40">
             <Building2 className="mb-4 h-12 w-12 text-sky-600" />
-            <h3 className="mb-2 text-lg font-semibold text-gray-900">Multi-Building Support</h3>
-            <p className="text-sm text-gray-600">Navigate across multiple buildings and floors seamlessly</p>
+            <h3 className="mb-2 text-lg font-semibold text-foreground">Multi-Building Support</h3>
+            <p className="text-sm text-muted-foreground">Navigate across multiple buildings and floors seamlessly</p>
           </div>
-          <div className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+          <div className="rounded-2xl border border-sky-100/70 bg-card p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-sky-900/40">
             <Users className="mb-4 h-12 w-12 text-sky-600" />
-            <h3 className="mb-2 text-lg font-semibold text-gray-900">Share Maps Publicly</h3>
-            <p className="text-sm text-gray-600">Upload your layouts and make them available for everyone</p>
+            <h3 className="mb-2 text-lg font-semibold text-foreground">Share Maps Publicly</h3>
+            <p className="text-sm text-muted-foreground">Upload your layouts and make them available for everyone</p>
           </div>
         </div>
 
@@ -91,36 +91,36 @@ export default function LandingPage() {
           </button>
           <button
             onClick={goToDashboardOrPrompt}
-            className="rounded-xl border-2 border-blue-600 px-8 py-3 font-semibold text-blue-700 transition hover:bg-blue-50"
+            className="rounded-xl border-2 border-blue-600 px-8 py-3 font-semibold text-blue-700 transition hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-950/40"
           >
             Get Started
           </button>
         </div>
 
-        <div className="mx-auto mt-16 max-w-5xl rounded-2xl border border-slate-200 bg-white p-8 text-left shadow-sm">
-          <h2 className="text-2xl font-bold text-slate-900">How it works in 3 steps</h2>
+        <div className="mx-auto mt-16 max-w-5xl rounded-2xl border border-slate-200 bg-card p-8 text-left shadow-sm dark:border-slate-800">
+          <h2 className="text-2xl font-bold text-foreground">How it works in 3 steps</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/40">
               <p className="text-sm font-semibold text-sky-700">1. Upload map</p>
-              <p className="mt-2 text-sm text-slate-600">Add floor plan files and define basic building metadata.</p>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Add floor plan files and define basic building metadata.</p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/40">
               <p className="text-sm font-semibold text-sky-700">2. Auto-process</p>
-              <p className="mt-2 text-sm text-slate-600">AI-assisted parsing creates searchable paths, nodes, and POIs.</p>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">AI-assisted parsing creates searchable paths, nodes, and POIs.</p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/40">
               <p className="text-sm font-semibold text-sky-700">3. Share everywhere</p>
-              <p className="mt-2 text-sm text-slate-600">Publish maps for web, kiosk, and QR-linked visitor journeys.</p>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Publish maps for web, kiosk, and QR-linked visitor journeys.</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div id="explore" className="border-t bg-white py-16">
+      <div id="explore" className="border-t border-slate-200 bg-card py-16 dark:border-slate-800">
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-8">
-            <h2 className="mb-2 text-3xl font-bold text-gray-900">Publicly Available Maps</h2>
-            <p className="text-gray-600">Browse and explore hospital layouts from our community</p>
+            <h2 className="mb-2 text-3xl font-bold text-foreground">Publicly Available Maps</h2>
+            <p className="text-muted-foreground">Browse and explore hospital layouts from our community</p>
           </div>
 
           <PublicMapsViewer onSelectMap={setSelectedMap} onExploreMap={(map) => navigate(`/navigate/${map.id}`)} />
@@ -172,11 +172,11 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div className="bg-white py-6 border-t border-slate-200">
-        <div className="mx-auto max-w-7xl px-4 text-center text-sm text-slate-600">
-          <span className="font-medium text-slate-800">Project by {SITE_OWNER_NAME}</span>
+      <div className="bg-card py-6 border-t border-slate-200 dark:border-slate-800">
+        <div className="mx-auto max-w-7xl px-4 text-center text-sm text-slate-600 dark:text-slate-300">
+          <span className="font-medium text-slate-800 dark:text-slate-100">Project by {SITE_OWNER_NAME}</span>
           <span className="mx-2">|</span>
-          <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="text-sky-700 hover:underline">
+          <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="text-sky-700 hover:underline dark:text-sky-300">
             {SITE_CONTACT_EMAIL}
           </a>
         </div>
