@@ -1,6 +1,11 @@
 import React from 'react';
-import { Mail, MessageCircle } from 'lucide-react';
-import { SITE_CONTACT_EMAIL, SITE_OWNER_NAME } from '../config/site';
+import { Github, Linkedin, Mail, MessageCircle } from 'lucide-react';
+import {
+  SITE_CONTACT_EMAIL,
+  SITE_GITHUB_URL,
+  SITE_LINKEDIN_URL,
+  SITE_OWNER_NAME,
+} from '../config/site';
 
 export default function ContactPage() {
   return (
@@ -22,6 +27,18 @@ export default function ContactPage() {
                   {SITE_CONTACT_EMAIL}
                 </a>
               </p>
+              <p className="mt-1 text-sm text-slate-700">
+                <span className="font-semibold">GitHub:</span>{' '}
+                <a className="text-emerald-700 hover:underline" href={SITE_GITHUB_URL} target="_blank" rel="noreferrer">
+                  {SITE_GITHUB_URL}
+                </a>
+              </p>
+              <p className="mt-1 text-sm text-slate-700">
+                <span className="font-semibold">LinkedIn:</span>{' '}
+                <a className="text-emerald-700 hover:underline" href={SITE_LINKEDIN_URL} target="_blank" rel="noreferrer">
+                  {SITE_LINKEDIN_URL}
+                </a>
+              </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
@@ -38,6 +55,24 @@ export default function ContactPage() {
               >
                 <MessageCircle className="h-4 w-4" />
                 Send Inquiry
+              </a>
+              <a
+                href={SITE_GITHUB_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                <Github className="h-4 w-4" />
+                GitHub
+              </a>
+              <a
+                href={SITE_LINKEDIN_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                <Linkedin className="h-4 w-4" />
+                LinkedIn
               </a>
             </div>
           </div>
