@@ -184,6 +184,32 @@ export default function LandingPage() {
 
       <div className="bg-gray-900 py-8 text-gray-400">
         <div className="mx-auto max-w-7xl px-4 text-center">
+          <div className="mb-4 flex flex-wrap items-center justify-center gap-2 text-sm">
+            <button
+              onClick={() => navigate('/about')}
+              className="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300 transition hover:bg-slate-800"
+            >
+              About
+            </button>
+            <button
+              onClick={() => navigate('/future-enhancements')}
+              className="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300 transition hover:bg-slate-800"
+            >
+              Future Enhancements
+            </button>
+            <button
+              onClick={() => navigate('/contact')}
+              className="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300 transition hover:bg-slate-800"
+            >
+              Contact Us
+            </button>
+            <a
+              href={`mailto:${SITE_CONTACT_EMAIL}?subject=Support%20Request%20-%20Indoor%20Wayfinder`}
+              className="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300 transition hover:bg-slate-800"
+            >
+              Support
+            </a>
+          </div>
           <p>© 2024 Multi-Building Indoor Wayfinder. Built for hospitals and large complexes.</p>
         </div>
       </div>
