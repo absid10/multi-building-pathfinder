@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Building2, MapPin, Search, Navigation } from 'lucide-react';
 import { API_BASE } from '../config/api';
-import { SITE_OWNER_NAME } from '../config/site';
 import CampusPreview from './CampusPreview';
+
+const SEEDED_UPLOADER_NAME = 'Abdullah';
 
 export interface PublicMap {
   id: string;
@@ -27,7 +28,7 @@ const seedMaps: PublicMap[] = [
     description: 'Government Hospital Map Chh. Sambhajinagar',
     buildingCount: 2,
     floorCount: 3,
-    uploadedBy: SITE_OWNER_NAME,
+    uploadedBy: SEEDED_UPLOADER_NAME,
     isPublic: true,
     thumbnail: '/maps/gmch-campus.jpg',
   },
@@ -37,7 +38,7 @@ const seedMaps: PublicMap[] = [
     description: 'Multi-building engineering campus',
     buildingCount: 12,
     floorCount: 3,
-    uploadedBy: SITE_OWNER_NAME,
+    uploadedBy: SEEDED_UPLOADER_NAME,
     isPublic: true,
     thumbnail: '/maps/geca-location.jpg',
   },
