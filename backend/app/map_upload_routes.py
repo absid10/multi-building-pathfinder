@@ -157,6 +157,45 @@ def map_status(map_id: int):
     )
 
 
+@map_upload_bp.get("/<int:map_id>")
+def get_map_details(map_id: int):
+    """Get full uploaded map details including analysis graph."""
+    uploaded_map = UploadedMap.query.get_or_404(map_id)
+    user = get_current_user_from_request()
+
+    is_owner = bool(user and uploaded_map.user_id == user.id)
+    if not is_owner and not (uploaded_map.is_public and uploaded_map.status == "analyzed"):
+        return jsonify({"error": "Forbidden"}), 403
+
+    payload = uploaded_map.to_dict()
+    payload["analysisResult"] = uploaded_map.analysis_result
+    return jsonify(payload)
+
+
+@map_upload_bp.patch("/<int:map_id>/name")
+def rename_map(map_id: int):
+    """Rename an uploaded map."""
+    user = get_current_user_from_request()
+
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    uploaded_map = UploadedMap.query.get_or_404(map_id)
+    if uploaded_map.user_id != user.id:
+        return jsonify({"error": "Forbidden"}), 403
+
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+    if len(name) > 256:
+        return jsonify({"error": "Name too long (max 256 chars)"}), 400
+
+    uploaded_map.name = name
+    db.session.commit()
+    return jsonify(uploaded_map.to_dict())
+
+
 @map_upload_bp.get("/list")
 def list_user_maps():
     """Get all maps uploaded by current user"""

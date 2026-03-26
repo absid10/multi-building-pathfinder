@@ -11,6 +11,7 @@ import AboutPage from "./pages/AboutPage";
 import FutureEnhancementsPage from "./pages/FutureEnhancementsPage";
 import ContactPage from "./pages/ContactPage";
 import Index from "./pages/Index";
+import UploadedMapNavigatorPage from "./pages/UploadedMapNavigatorPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/future-enhancements" element={<FutureEnhancementsPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/navigate/:mapId" element={<Index />} />
+            <Route path="/navigate/upload/:mapId" element={<UploadedMapNavigatorPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

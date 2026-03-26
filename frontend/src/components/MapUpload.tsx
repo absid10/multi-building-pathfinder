@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Upload, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import { API_BASE } from '../config/api';
+import { useNavigate } from 'react-router-dom';
 
 export interface UploadedMap {
   id: string;
@@ -21,9 +22,12 @@ const getAuthHeader = () => {
 };
 
 export default function MapUpload() {
+  const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedMaps, setUploadedMaps] = useState<UploadedMap[]>([]);
   const [currentAnalyzing, setCurrentAnalyzing] = useState<string | null>(null);
+  const [renamingMapId, setRenamingMapId] = useState<string | null>(null);
+  const [renameDraft, setRenameDraft] = useState('');
 
   useEffect(() => {
     const loadMaps = async () => {
@@ -230,6 +234,51 @@ export default function MapUpload() {
     }
   };
 
+  const startRename = (map: UploadedMap) => {
+    setRenamingMapId(map.id);
+    setRenameDraft(map.name);
+  };
+
+  const saveRename = async (mapId: string) => {
+    const name = renameDraft.trim();
+    if (!name) {
+      alert('Name cannot be empty.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/maps/${mapId}/name`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify({ name }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || 'Rename failed');
+      }
+
+      const payload = await response.json();
+      setUploadedMaps((prev) =>
+        prev.map((m) =>
+          m.id === mapId
+            ? {
+                ...m,
+                name: payload.name,
+              }
+            : m
+        )
+      );
+      setRenamingMapId(null);
+      setRenameDraft('');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Could not rename map');
+    }
+  };
+
   const analyzingMap = uploadedMaps.find((m) => m.id === currentAnalyzing);
 
   return (
@@ -309,7 +358,32 @@ export default function MapUpload() {
 
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-gray-900">{map.name}</h4>
+                    {renamingMapId === map.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          value={renameDraft}
+                          onChange={(e) => setRenameDraft(e.target.value)}
+                          className="rounded border border-gray-300 px-2 py-1 text-sm"
+                        />
+                        <button
+                          onClick={() => saveRename(map.id)}
+                          className="px-2 py-1 text-xs font-semibold rounded bg-blue-600 text-white"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => {
+                            setRenamingMapId(null);
+                            setRenameDraft('');
+                          }}
+                          className="px-2 py-1 text-xs font-semibold rounded bg-gray-200 text-gray-700"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <h4 className="font-semibold text-gray-900">{map.name}</h4>
+                    )}
                     {map.status === 'analyzed' && (
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
                         <CheckCircle className="w-3 h-3" />
@@ -337,6 +411,20 @@ export default function MapUpload() {
                 </div>
 
                 <div className="flex gap-2">
+                  {map.status === 'analyzed' && (
+                    <button
+                      onClick={() => navigate(`/navigate/upload/${map.id}`)}
+                      className="px-3 py-2 rounded-lg text-sm font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+                    >
+                      Explore
+                    </button>
+                  )}
+                  <button
+                    onClick={() => startRename(map)}
+                    className="px-3 py-2 rounded-lg text-sm font-semibold bg-amber-100 text-amber-700 hover:bg-amber-200 transition"
+                  >
+                    Rename
+                  </button>
                   {map.status === 'analyzed' && (
                     <button
                       onClick={() => toggleMapVisibility(map.id)}

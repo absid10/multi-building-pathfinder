@@ -78,7 +78,13 @@ export default function DashboardPage() {
               onSelectMap={(map) => {
                 console.log('Selected map:', map);
               }}
-              onExploreMap={(map) => navigate(`/navigate/${map.id}`)}
+              onExploreMap={(map) => {
+                if (map.id.startsWith('user-')) {
+                  navigate(`/navigate/upload/${map.id.replace('user-', '')}`);
+                  return;
+                }
+                navigate(`/navigate/${map.id}`);
+              }}
             />
           </div>
         )}
