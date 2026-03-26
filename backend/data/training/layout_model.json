@@ -1,7 +1,7 @@
 {
   "version": "1.0",
-  "trainedAt": "2026-03-26T00:41:48.784744",
-  "sampleCount": 2,
+  "trainedAt": "2026-03-26T01:24:12.477780",
+  "sampleCount": 1,
   "avgBuildingCount": 1.0,
   "avgFloorCount": 3.0,
   "keywordPriors": {

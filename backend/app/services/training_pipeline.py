@@ -64,16 +64,18 @@ def _save_catalog(entries: list[dict[str, Any]]) -> None:
 
 def _find_sample_files() -> list[tuple[Path, str]]:
     candidates: list[tuple[Path, str]] = []
-    refs_dir = _project_root() / "references for frontend"
+    gmch_maps_dir = _project_root() / "frontend" / "public" / "maps"
     uploads_dir = _backend_root() / "uploads"
 
-    for base_dir, source in ((refs_dir, "reference"), (uploads_dir, "upload")):
+    for base_dir, source in ((gmch_maps_dir, "reference"), (uploads_dir, "upload")):
         if not base_dir.exists():
             continue
         for item in base_dir.iterdir():
             if not item.is_file():
                 continue
-            if item.suffix.lower() in SUPPORTED_EXTENSIONS:
+            is_supported = item.suffix.lower() in SUPPORTED_EXTENSIONS
+            is_gmch_reference = source != "reference" or item.name.lower().startswith("gmch")
+            if is_supported and is_gmch_reference:
                 candidates.append((item, source))
 
     return candidates
@@ -81,14 +83,20 @@ def _find_sample_files() -> list[tuple[Path, str]]:
 
 def refresh_training_catalog() -> list[dict[str, Any]]:
     existing = {entry.get("relativePath"): entry for entry in _load_catalog()}
-    merged: dict[str, dict[str, Any]] = dict(existing)
+    entries: list[dict[str, Any]] = []
 
     for path, source in _find_sample_files():
         rel = str(path.relative_to(_project_root())).replace("\\", "/")
-        if rel not in merged:
-            merged[rel] = _normalize_entry(path, source)
+        if rel in existing:
+            preserved = dict(existing[rel])
+            preserved["source"] = source
+            preserved["name"] = path.name
+            preserved["fileType"] = path.suffix.lower().lstrip(".")
+            entries.append(preserved)
+        else:
+            entries.append(_normalize_entry(path, source))
 
-    entries = sorted(merged.values(), key=lambda x: x.get("name", "").lower())
+    entries.sort(key=lambda x: x.get("name", "").lower())
     _save_catalog(entries)
     return entries
 

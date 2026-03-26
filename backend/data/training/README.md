@@ -8,7 +8,7 @@ This folder stores the local training catalog and lightweight layout model used 
 
 ## Add More Layouts (including web-sourced plans)
 1. Save map files (`.png`, `.jpg`, `.jpeg`, `.pdf`) to either:
-   - `references for frontend/` (project root)
+   - `frontend/public/maps/` using `gmch*` file naming for reference maps
    - `backend/uploads/` (uploaded user maps)
 2. Run:
 
