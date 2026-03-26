@@ -288,7 +288,9 @@ export default function MapUpload() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-lg p-12 text-center transition ${
-          isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-blue-400'
+          isDragging
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+            : 'border-gray-300 bg-gray-50 hover:border-blue-400 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500'
         }`}
       >
         <input
@@ -302,20 +304,20 @@ export default function MapUpload() {
         <label htmlFor="file-input" className="flex flex-col items-center gap-3 cursor-pointer">
           <Upload className="w-12 h-12 text-blue-600" />
           <div>
-            <p className="text-lg font-semibold text-gray-900">Drag and drop your architectural maps here</p>
-            <p className="text-sm text-gray-600 mt-1">or click to select PNG, JPG, or PDF files</p>
+            <p className="text-lg font-semibold text-gray-900 dark:text-slate-100">Drag and drop your architectural maps here</p>
+            <p className="text-sm text-gray-600 mt-1 dark:text-slate-300">or click to select PNG, JPG, or PDF files</p>
           </div>
-          <p className="text-xs text-gray-500 mt-2">Supported formats: PNG, JPG, PDF (up to 25MB each)</p>
+          <p className="text-xs text-gray-500 mt-2 dark:text-slate-400">Supported formats: PNG, JPG, PDF (up to 25MB each)</p>
         </label>
       </div>
 
       {currentAnalyzing && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 text-center">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 text-center dark:bg-slate-900">
             <Loader className="w-16 h-16 text-blue-600 mx-auto animate-spin mb-6" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Analyzing Your Map</h3>
-            <p className="text-gray-600 mb-6">Our AI is analyzing your architectural layout...</p>
-            <div className="space-y-3 text-sm text-gray-600">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2 dark:text-slate-100">Analyzing Your Map</h3>
+            <p className="text-gray-600 mb-6 dark:text-slate-300">Our AI is analyzing your architectural layout...</p>
+            <div className="space-y-3 text-sm text-gray-600 dark:text-slate-300">
               <div className="flex items-center gap-3 justify-center">
                 <CheckCircle className="w-5 h-5 text-green-600" />
                 <span>File uploaded successfully</span>
@@ -325,34 +327,34 @@ export default function MapUpload() {
                 <span>Detecting buildings and floors...</span>
               </div>
               <div className="flex items-center gap-3 justify-center">
-                <div className="w-5 h-5 rounded-full border-2 border-gray-300"></div>
+                <div className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-slate-600"></div>
                 <span>Extracting waypoints</span>
               </div>
             </div>
             <div className="mt-6">
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-slate-700">
                 <div
                   className="bg-blue-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${analyzingMap?.progress || 20}%` }}
                 ></div>
               </div>
-              <p className="text-xs text-gray-500 mt-2">{(analyzingMap?.progress || 20).toFixed(0)}%</p>
+              <p className="text-xs text-gray-500 mt-2 dark:text-slate-400">{(analyzingMap?.progress || 20).toFixed(0)}%</p>
             </div>
           </div>
         </div>
       )}
 
       {uploadedMaps.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Your Uploaded Maps</h3>
+        <div className="bg-white rounded-lg shadow-md p-6 dark:bg-slate-900">
+          <h3 className="text-xl font-bold text-gray-900 mb-4 dark:text-slate-100">Your Uploaded Maps</h3>
           <div className="space-y-3">
             {uploadedMaps.map((map) => (
-              <div key={map.id} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
-                <div className="w-16 h-16 rounded-lg bg-gray-200 flex-shrink-0 overflow-hidden">
+              <div key={map.id} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800/60">
+                <div className="w-16 h-16 rounded-lg bg-gray-200 flex-shrink-0 overflow-hidden dark:bg-slate-700">
                   {map.thumbnail ? (
                     <img src={map.thumbnail} alt={map.name} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">PDF</div>
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-slate-300">PDF</div>
                   )}
                 </div>
 
@@ -363,7 +365,7 @@ export default function MapUpload() {
                         <input
                           value={renameDraft}
                           onChange={(e) => setRenameDraft(e.target.value)}
-                          className="rounded border border-gray-300 px-2 py-1 text-sm"
+                          className="rounded border border-gray-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                         />
                         <button
                           onClick={() => saveRename(map.id)}
@@ -376,13 +378,13 @@ export default function MapUpload() {
                             setRenamingMapId(null);
                             setRenameDraft('');
                           }}
-                          className="px-2 py-1 text-xs font-semibold rounded bg-gray-200 text-gray-700"
+                          className="px-2 py-1 text-xs font-semibold rounded bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-slate-200"
                         >
                           Cancel
                         </button>
                       </div>
                     ) : (
-                      <h4 className="font-semibold text-gray-900">{map.name}</h4>
+                      <h4 className="font-semibold text-gray-900 dark:text-slate-100">{map.name}</h4>
                     )}
                     {map.status === 'analyzed' && (
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
@@ -403,9 +405,9 @@ export default function MapUpload() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500">{map.uploadDate}</p>
+                  <p className="text-sm text-gray-500 dark:text-slate-400">{map.uploadDate}</p>
                   {map.buildingCount && map.floorCount && (
-                    <p className="text-xs text-gray-600 mt-1">{map.buildingCount} building(s), {map.floorCount} floor(s)</p>
+                    <p className="text-xs text-gray-600 mt-1 dark:text-slate-300">{map.buildingCount} building(s), {map.floorCount} floor(s)</p>
                   )}
                   {map.error && <p className="text-xs text-red-600 mt-1">{map.error}</p>}
                 </div>

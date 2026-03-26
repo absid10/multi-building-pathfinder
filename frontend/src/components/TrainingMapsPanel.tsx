@@ -51,13 +51,21 @@ export default function TrainingMapsPanel({ isLoggedIn }: TrainingMapsPanelProps
     loadOverview();
   }, []);
 
+  const visibleMaps = useMemo(() => {
+    return maps.filter((map) => {
+      const rel = (map.relativePath || '').toLowerCase();
+      const name = (map.name || '').toLowerCase();
+      return !(rel.includes('references for frontend') || name.startsWith('reference'));
+    });
+  }, [maps]);
+
   const sourceSummary = useMemo(() => {
-    return maps.reduce<Record<string, number>>((acc, map) => {
+    return visibleMaps.reduce<Record<string, number>>((acc, map) => {
       const key = map.source || 'unknown';
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {});
-  }, [maps]);
+  }, [visibleMaps]);
 
   const retrain = async () => {
     if (!isLoggedIn) return;
@@ -78,21 +86,21 @@ export default function TrainingMapsPanel({ isLoggedIn }: TrainingMapsPanelProps
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-card p-6 shadow-sm dark:border-slate-800">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 dark:text-slate-100">
             <Brain className="h-5 w-5 text-indigo-600" />
             AI Training Maps
           </h3>
-          <p className="text-xs text-slate-600 mt-1">
+          <p className="text-xs text-slate-600 mt-1 dark:text-slate-300">
             Map files currently used to train layout-to-graph conversion.
           </p>
         </div>
         <button
           onClick={retrain}
           disabled={!isLoggedIn || retraining}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
         >
           <RefreshCcw className={`h-3.5 w-3.5 ${retraining ? 'animate-spin' : ''}`} />
           Retrain
@@ -101,27 +109,27 @@ export default function TrainingMapsPanel({ isLoggedIn }: TrainingMapsPanelProps
 
       {model && (
         <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
-            <p className="text-xs text-slate-500">Samples</p>
-            <p className="font-semibold text-slate-900">{model.sampleCount ?? maps.length}</p>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-900">
+            <p className="text-xs text-slate-500 dark:text-slate-400">Samples</p>
+            <p className="font-semibold text-slate-900 dark:text-slate-100">{visibleMaps.length}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
-            <p className="text-xs text-slate-500">Model Version</p>
-            <p className="font-semibold text-slate-900">{model.version || '1.0'}</p>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-900">
+            <p className="text-xs text-slate-500 dark:text-slate-400">Model Version</p>
+            <p className="font-semibold text-slate-900 dark:text-slate-100">{model.version || '1.0'}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
-            <p className="text-xs text-slate-500">Avg Buildings</p>
-            <p className="font-semibold text-slate-900">{model.avgBuildingCount ?? 1}</p>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-900">
+            <p className="text-xs text-slate-500 dark:text-slate-400">Avg Buildings</p>
+            <p className="font-semibold text-slate-900 dark:text-slate-100">{model.avgBuildingCount ?? 1}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
-            <p className="text-xs text-slate-500">Avg Floors</p>
-            <p className="font-semibold text-slate-900">{model.avgFloorCount ?? 1}</p>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-900">
+            <p className="text-xs text-slate-500 dark:text-slate-400">Avg Floors</p>
+            <p className="font-semibold text-slate-900 dark:text-slate-100">{model.avgFloorCount ?? 1}</p>
           </div>
         </div>
       )}
 
       {Object.keys(sourceSummary).length > 0 && (
-        <div className="mb-4 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-xs text-indigo-800">
+        <div className="mb-4 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-xs text-indigo-800 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-300">
           <p className="font-semibold mb-1 flex items-center gap-1">
             <Database className="h-3.5 w-3.5" />
             Sources
@@ -135,18 +143,18 @@ export default function TrainingMapsPanel({ isLoggedIn }: TrainingMapsPanelProps
       )}
 
       <div className="max-h-[380px] overflow-auto pr-1 space-y-2">
-        {loading && <p className="text-xs text-slate-500">Loading training dataset...</p>}
-        {!loading && maps.length === 0 && (
-          <p className="text-xs text-slate-500">No training maps indexed yet.</p>
+        {loading && <p className="text-xs text-slate-500 dark:text-slate-400">Loading training dataset...</p>}
+        {!loading && visibleMaps.length === 0 && (
+          <p className="text-xs text-slate-500 dark:text-slate-400">No training maps indexed yet.</p>
         )}
 
-        {maps.map((map) => (
-          <div key={map.id} className="rounded-lg border border-slate-200 p-3">
-            <p className="text-sm font-semibold text-slate-900">{map.name}</p>
-            <p className="text-xs text-slate-600 mt-1">
+        {visibleMaps.map((map) => (
+          <div key={map.id} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{map.name}</p>
+            <p className="text-xs text-slate-600 mt-1 dark:text-slate-300">
               Source: {map.source} | Type: {map.fileType.toUpperCase()}
             </p>
-            <p className="text-[11px] text-slate-500 mt-1 break-all">{map.relativePath}</p>
+            <p className="text-[11px] text-slate-500 mt-1 break-all dark:text-slate-400">{map.relativePath}</p>
           </div>
         ))}
       </div>
