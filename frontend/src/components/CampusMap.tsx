@@ -3,18 +3,101 @@ import React from "react";
 interface CampusMapProps {
   onSelectBuilding: (buildingId: string) => void;
   isNavigating: boolean;
+  mapId?: string;
+  buildingALabel?: string;
+  buildingBLabel?: string;
 }
 
 export const CampusMap: React.FC<CampusMapProps> = ({
   onSelectBuilding,
   isNavigating,
+  mapId,
+  buildingALabel,
+  buildingBLabel,
 }) => {
+  const isGeca = (mapId || "").includes("geca");
+
   return (
     <div className="w-full h-[70vh] bg-[hsl(var(--map-bg))] rounded-lg border-2 border-border shadow-lg flex items-center justify-center">
       <svg
-        viewBox="0 0 1132 801" // Set to your "outer map boundry"
+        viewBox={isGeca ? "0 0 1200 800" : "0 0 1132 801"}
         className="w-full h-full"
       >
+        {isGeca ? (
+          <>
+            {/* GECA campus roads */}
+            <polyline
+              points="120,690 250,610 410,560 560,500 760,430 920,350 1060,290"
+              fill="none"
+              stroke="#B8B8B8"
+              strokeWidth="34"
+              strokeLinecap="round"
+              className="pointer-events-none"
+            />
+            <polyline
+              points="430,620 500,560 640,560 760,580 900,620"
+              fill="none"
+              stroke="#C7C7C7"
+              strokeWidth="26"
+              strokeLinecap="round"
+              className="pointer-events-none"
+            />
+
+            {/* GECA non-interactive blocks */}
+            <rect x="140" y="470" width="170" height="90" rx="10" fill="#7A7A7A" opacity="0.75" className="pointer-events-none" />
+            <text x="225" y="523" textAnchor="middle" fontSize="14" fill="white" fontWeight="600" className="pointer-events-none">Hostel</text>
+
+            <rect x="590" y="520" width="140" height="80" rx="10" fill="#7A7A7A" opacity="0.75" className="pointer-events-none" />
+            <text x="660" y="567" textAnchor="middle" fontSize="14" fill="white" fontWeight="600" className="pointer-events-none">Library</text>
+
+            {/* GECA interactive blocks */}
+            <rect
+              x="460"
+              y="430"
+              width="170"
+              height="95"
+              rx="10"
+              fill="#E3C744"
+              stroke="black"
+              strokeWidth="2"
+              opacity="0.85"
+              className="cursor-pointer hover:opacity-100 transition"
+              onClick={() => onSelectBuilding("buildingA")}
+            />
+            <text x="545" y="485" textAnchor="middle" fontSize="20" fill="black" fontWeight="600" className="pointer-events-none">
+              {buildingALabel || "Admin Block"}
+            </text>
+
+            <rect
+              x="790"
+              y="335"
+              width="195"
+              height="105"
+              rx="10"
+              fill="#E3C744"
+              stroke="black"
+              strokeWidth="2"
+              opacity="0.85"
+              className="cursor-pointer hover:opacity-100 transition"
+              onClick={() => onSelectBuilding("buildingB")}
+            />
+            <text x="888" y="396" textAnchor="middle" fontSize="20" fill="black" fontWeight="600" className="pointer-events-none">
+              {buildingBLabel || "Academic Block"}
+            </text>
+
+            {isNavigating && (
+              <polyline
+                points="120,690 250,610 410,560 560,500 760,430 920,350 1060,290"
+                fill="none"
+                stroke="hsl(var(--path-color))"
+                strokeWidth="6"
+                strokeDasharray="10 10"
+                className="animate-pulse pointer-events-none"
+              />
+            )}
+          </>
+        ) : (
+          <>
         {/* --- Non-Interactive Scenery --- */}
         
         {/* Inner Ghati Path */}
@@ -117,6 +200,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             strokeDasharray="10 10"
             className="animate-pulse pointer-events-none" // ✅ BUG FIX: Made path un-clickable
           />
+        )}
+          </>
         )}
       </svg>
     </div>

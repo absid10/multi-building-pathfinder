@@ -96,10 +96,23 @@ def upload_map():
         uploaded_map.analysis_job_id = job.id
         db.session.commit()
     except Exception as exc:
-        uploaded_map.status = "error"
-        uploaded_map.error_message = f"Queue enqueue failed: {exc}"
+        # Fallback: run analysis inline if Redis/RQ is unavailable.
+        # This keeps uploads usable in local/dev environments.
+        uploaded_map.analysis_job_id = None
         db.session.commit()
-        return jsonify({"error": "Analysis queue is unavailable"}), 503
+        analyze_uploaded_map_job(uploaded_map.id)
+        uploaded_map = UploadedMap.query.get(uploaded_map.id)
+        if uploaded_map and uploaded_map.status == "error":
+            uploaded_map.error_message = (
+                f"Queue unavailable; inline analysis failed: {uploaded_map.error_message}"
+            )
+            db.session.commit()
+            return jsonify(uploaded_map.to_dict()), 500
+
+        uploaded_map = UploadedMap.query.get(uploaded_map.id)
+        if uploaded_map:
+            uploaded_map.error_message = None
+            db.session.commit()
 
     return jsonify(uploaded_map.to_dict()), 201
 

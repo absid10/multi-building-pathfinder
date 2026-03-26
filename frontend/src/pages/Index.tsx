@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { HospitalMap } from "@/components/HospitalMap";
 import { DestinationSelector } from "@/components/DestinationSelector";
 import { findPath, findNearestNode, Node } from "@/utils/pathfinding";
-import { buildingMaps, getMapBuildings } from "@/data/buildingMaps";
+import { getMapBuildings } from "@/data/buildingMaps";
 import { CampusMap } from "@/components/CampusMap";
 import { toast } from "sonner";
 import { Building2, ArrowRightCircle, Home, ArrowLeft } from "lucide-react";
@@ -13,6 +13,11 @@ import { useIndoorTracking } from "@/hooks/useIndoorTracking";
 
 type BuildingId = "buildingA" | "buildingB";
 type FloorId = "floor1" | "floor2" | "floor3";
+
+const getBuildingLabel = (buildings: any, id: BuildingId) => {
+  const fallback = id === "buildingA" ? "Building A" : "Building B";
+  return buildings?.[id]?.name || fallback;
+};
 
 // (Helper function is unchanged)
 const findNearestStairPair = (
@@ -207,7 +212,7 @@ const Index = () => {
         // F1 -> F3 (2-hop)
         else if (currentFloor === "floor1" && destFloor === "floor3") {
           const { exitNode: exitF1, entryNode: entryF2 } = findNearestStairPair(startNode, f1Stairs, f2Stairs, mapF1, mapF2);
-          if (!exitF1 || !entryNode) { toast.error("Stair node error F1-F3 (Hop 1)"); return; }
+          if (!exitF1 || !entryF2) { toast.error("Stair node error F1-F3 (Hop 1)"); return; }
           const { exitNode: exitF2, entryNode: entryF3 } = findNearestStairPair(entryF2, f2Stairs, f3Stairs, mapF2, mapF3);
           if (!exitF2 || !entryF3) { toast.error("Stair node error F1-F3 (Hop 2)"); return; }
           
@@ -425,13 +430,16 @@ const Index = () => {
         <div className="max-w-7xl mx-auto">
           {pendingBuildingTransition && (
             <div className="mb-4 text-sm bg-primary/10 border border-primary/30 text-primary rounded-md p-3">
-              Tap <b>{pendingBuildingTransition.destBuilding === "buildingA" ? "OPD" : "Casualty"}</b> to
+              Tap <b>{getBuildingLabel(currentMapBuildings, pendingBuildingTransition.destBuilding)}</b> to
               enter and continue your route.
             </div>
           )}
           <CampusMap 
             onSelectBuilding={handleSelectBuildingFromCampus} 
             isNavigating={!!pendingBuildingTransition}
+            mapId={mapId || "gmch-chhatrapati"}
+            buildingALabel={currentMapBuildings?.buildingA?.name}
+            buildingBLabel={currentMapBuildings?.buildingB?.name}
           />
         </div>
       </div>
@@ -466,7 +474,7 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                  {buildingMaps[selectedBuilding].name}
+                  {getBuildingLabel(currentMapBuildings, selectedBuilding)}
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   {currentFloor === "floor1" ? "Ground Floor" : currentFloor === "floor2" ? "Floor 2" : "Floor 3"}
@@ -475,7 +483,7 @@ const Index = () => {
             </div>
 
             <div className="mt-4 flex gap-2 flex-wrap">
-              {(Object.keys(buildingMaps[selectedBuilding].floors) as FloorId[]).map((f) => (
+              {(Object.keys(currentMapBuildings[selectedBuilding].floors) as FloorId[]).map((f) => (
                 <button
                   key={f}
                   className={`px-5 py-3 text-sm rounded-md border transition-all ${
@@ -620,10 +628,7 @@ const Index = () => {
                 <p className="text-sm font-medium text-foreground text-center">
                   Route continues to{" "}
                   <span className="font-bold text-primary">
-                    {/* ✅ UPDATED to use correct building names */}
-                    {pendingBuildingTransition.destBuilding === "buildingA"
-                      ? "OPD"
-                      : "Casualty"}
+                    {getBuildingLabel(currentMapBuildings, pendingBuildingTransition.destBuilding)}
                   </span>
                 </p>
                 <Button

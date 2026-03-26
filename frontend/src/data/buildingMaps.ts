@@ -2,6 +2,14 @@
 import { floor1Map, floor2Map } from "./hospitalMap";
 import { floor1MapB, floor2MapB, floor3MapB } from "./hospitalMapB";
 import { campusMapData } from "./campusMapData";
+import {
+  gecaCampusMap,
+  gecaAFloor1,
+  gecaAFloor2,
+  gecaBFloor1,
+  gecaBFloor2,
+  gecaBFloor3,
+} from "./gecaMaps";
 
 /**
  * 🔹 Map-specific building data
@@ -34,22 +42,22 @@ const gecaBuildings = {
   campus: {
     name: "GECA Campus",
     floors: {
-      "floor1": campusMapData, // Placeholder
+      floor1: gecaCampusMap,
     }
   },
   buildingA: {
-    name: "Building A",
+    name: "Admin Block",
     floors: {
-      floor1: floor1Map,
-      floor2: floor2Map,
+      floor1: gecaAFloor1,
+      floor2: gecaAFloor2,
     },
   },
   buildingB: {
-    name: "Building B",
+    name: "Academic Block",
     floors: {
-      floor1: floor1MapB,
-      floor2: floor2MapB,
-      floor3: floor3MapB,
+      floor1: gecaBFloor1,
+      floor2: gecaBFloor2,
+      floor3: gecaBFloor3,
     },
   },
 };
