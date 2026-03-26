@@ -1,0 +1,25 @@
+{
+  "version": "1.0",
+  "trainedAt": "2026-03-26T00:41:48.784744",
+  "sampleCount": 2,
+  "avgBuildingCount": 1.0,
+  "avgFloorCount": 3.0,
+  "keywordPriors": {
+    "admin": {
+      "buildingCount": 1,
+      "floorCount": 3
+    },
+    "academic": {
+      "buildingCount": 1,
+      "floorCount": 3
+    },
+    "hospital": {
+      "buildingCount": 2,
+      "floorCount": 3
+    },
+    "college": {
+      "buildingCount": 2,
+      "floorCount": 3
+    }
+  }
+}

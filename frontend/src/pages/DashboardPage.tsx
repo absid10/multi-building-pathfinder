@@ -4,6 +4,7 @@ import { UploadCloud, Globe, Lock, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import MapUpload from '../components/MapUpload';
 import PublicMapsViewer from '../components/PublicMapsViewer';
+import TrainingMapsPanel from '../components/TrainingMapsPanel';
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'public' | 'your-maps'>('public');
@@ -99,12 +100,15 @@ export default function DashboardPage() {
                 </button>
               </div>
             ) : (
-              <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-                <div className="flex items-center gap-3 mb-6">
-                  <UploadCloud className="w-8 h-8 text-blue-600" />
-                  <h2 className="text-2xl font-bold text-gray-900">Upload New Map</h2>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm lg:col-span-2">
+                  <div className="flex items-center gap-3 mb-6">
+                    <UploadCloud className="w-8 h-8 text-blue-600" />
+                    <h2 className="text-2xl font-bold text-gray-900">Upload New Map</h2>
+                  </div>
+                  <MapUpload />
                 </div>
-                <MapUpload />
+                <TrainingMapsPanel isLoggedIn={isLoggedIn} />
               </div>
             )}
           </div>

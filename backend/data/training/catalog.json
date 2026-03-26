@@ -1,0 +1,18 @@
+[
+  {
+    "id": "reference:reference 2.pdf",
+    "name": "reference 2.pdf",
+    "source": "reference",
+    "fileType": "pdf",
+    "relativePath": "references for frontend/reference 2.pdf",
+    "addedAt": "2026-03-26T00:41:48.673093"
+  },
+  {
+    "id": "reference:references1.pdf",
+    "name": "references1.pdf",
+    "source": "reference",
+    "fileType": "pdf",
+    "relativePath": "references for frontend/references1.pdf",
+    "addedAt": "2026-03-26T00:41:48.673544"
+  }
+]

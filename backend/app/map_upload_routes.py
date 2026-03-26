@@ -7,6 +7,11 @@ from .models import User, UploadedMap
 from .auth_routes import verify_token
 from .services.queue import get_analysis_queue
 from .services.map_analysis_jobs import analyze_uploaded_map_job
+from .services.training_pipeline import (
+    add_uploaded_map_to_training,
+    get_training_overview,
+    train_layout_model,
+)
 
 map_upload_bp = Blueprint("map_upload", __name__, url_prefix="/api/v1/maps")
 
@@ -89,6 +94,9 @@ def upload_map():
     db.session.add(uploaded_map)
     db.session.commit()
 
+    # Include every uploaded plan in the local training catalog for future retraining.
+    add_uploaded_map_to_training(file_path)
+
     # Queue async AI analysis job.
     try:
         queue = get_analysis_queue()
@@ -115,6 +123,23 @@ def upload_map():
             db.session.commit()
 
     return jsonify(uploaded_map.to_dict()), 201
+
+
+@map_upload_bp.get("/training")
+def list_training_maps():
+    """Return the catalog of maps used to train map structure inference."""
+    return jsonify(get_training_overview())
+
+
+@map_upload_bp.post("/training/retrain")
+def retrain_layout_model():
+    """Rebuild the lightweight layout model from cataloged training maps."""
+    user = get_current_user_from_request()
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    model = train_layout_model()
+    return jsonify({"message": "Model retrained", "model": model})
 
 
 @map_upload_bp.get("/<int:map_id>/status")

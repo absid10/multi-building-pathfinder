@@ -49,6 +49,24 @@ export default function Header() {
                   Dashboard
                 </button>
                 <button
+                  onClick={() => navigate('/about')}
+                  className="px-4 py-2 hover:bg-blue-600 rounded-lg transition"
+                >
+                  About
+                </button>
+                <button
+                  onClick={() => navigate('/future-enhancements')}
+                  className="px-4 py-2 hover:bg-blue-600 rounded-lg transition"
+                >
+                  Future
+                </button>
+                <button
+                  onClick={() => navigate('/contact')}
+                  className="px-4 py-2 hover:bg-blue-600 rounded-lg transition"
+                >
+                  Contact
+                </button>
+                <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition"
                 >
@@ -64,6 +82,24 @@ export default function Header() {
                 >
                   <Home className="w-4 h-4" />
                   Home
+                </button>
+                <button
+                  onClick={() => navigate('/about')}
+                  className="px-4 py-2 hover:bg-blue-600 rounded-lg transition"
+                >
+                  About
+                </button>
+                <button
+                  onClick={() => navigate('/future-enhancements')}
+                  className="px-4 py-2 hover:bg-blue-600 rounded-lg transition"
+                >
+                  Future
+                </button>
+                <button
+                  onClick={() => navigate('/contact')}
+                  className="px-4 py-2 hover:bg-blue-600 rounded-lg transition"
+                >
+                  Contact
                 </button>
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
@@ -107,6 +143,33 @@ export default function Header() {
                   Dashboard
                 </button>
                 <button
+                  onClick={() => {
+                    navigate('/about');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-2 hover:bg-blue-600 rounded-lg transition text-left"
+                >
+                  About
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/future-enhancements');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-2 hover:bg-blue-600 rounded-lg transition text-left"
+                >
+                  Future Enhancements
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/contact');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-2 hover:bg-blue-600 rounded-lg transition text-left"
+                >
+                  Contact Us
+                </button>
+                <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition"
                 >
@@ -125,6 +188,33 @@ export default function Header() {
                 >
                   <Home className="w-4 h-4" />
                   Home
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/about');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-2 hover:bg-blue-600 rounded-lg transition text-left"
+                >
+                  About
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/future-enhancements');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-2 hover:bg-blue-600 rounded-lg transition text-left"
+                >
+                  Future Enhancements
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/contact');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-2 hover:bg-blue-600 rounded-lg transition text-left"
+                >
+                  Contact Us
                 </button>
                 <button
                   onClick={() => {

@@ -56,6 +56,7 @@ const findNearestStairPair = (
 const Index = () => {
   const navigate = useNavigate();
   const { mapId } = useParams<{ mapId: string }>();
+  const isGecaMap = (mapId || "").includes("geca");
   
   // Get map-specific building data
   const currentMapBuildings = getMapBuildings(mapId || 'gmch-chhatrapati');
@@ -333,6 +334,16 @@ const Index = () => {
   };
 
   const handleSelectBuildingFromCampus = (id: string) => {
+    if (isGecaMap) {
+      const pickedLabel = id === "buildingA"
+        ? getBuildingLabel(currentMapBuildings, "buildingA")
+        : getBuildingLabel(currentMapBuildings, "buildingB");
+      toast.info("Mapping pending", {
+        description: `${pickedLabel} indoor floor mapping is pending. Campus-level view is available.`,
+      });
+      return;
+    }
+
     const picked = id as BuildingId;
     setSelectedBuilding(picked);
     setInCampusView(false);
@@ -440,6 +451,7 @@ const Index = () => {
             mapId={mapId || "gmch-chhatrapati"}
             buildingALabel={currentMapBuildings?.buildingA?.name}
             buildingBLabel={currentMapBuildings?.buildingB?.name}
+            disableBuildingNavigation={isGecaMap}
           />
         </div>
       </div>

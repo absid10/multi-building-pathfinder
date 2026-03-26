@@ -54,6 +54,41 @@ export default function MapUpload() {
     loadMaps();
   }, []);
 
+  useEffect(() => {
+    const pending = uploadedMaps.filter((m) => m.status === 'analyzing' && !m.id.startsWith('temp-'));
+    if (pending.length === 0) return;
+
+    const intervalId = window.setInterval(async () => {
+      for (const map of pending) {
+        try {
+          const response = await fetch(`${API_BASE}/maps/${map.id}/status`, {
+            headers: { ...getAuthHeader() },
+          });
+          if (!response.ok) continue;
+          const status = await response.json();
+          setUploadedMaps((prev) =>
+            prev.map((m) => {
+              if (m.id !== map.id) return m;
+              const nextStatus = (status.status || 'analyzing') as UploadedMap['status'];
+              return {
+                ...m,
+                status: nextStatus,
+                buildingCount: status.buildingCount ?? m.buildingCount,
+                floorCount: status.floorCount ?? m.floorCount,
+                error: status.error ?? m.error,
+                progress: nextStatus === 'analyzed' ? 100 : nextStatus === 'error' ? 0 : 80,
+              };
+            })
+          );
+        } catch {
+          // Keep polling when intermittent network errors happen.
+        }
+      }
+    }, 2500);
+
+    return () => window.clearInterval(intervalId);
+  }, [uploadedMaps]);
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);

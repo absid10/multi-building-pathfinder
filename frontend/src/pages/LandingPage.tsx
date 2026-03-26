@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import PublicMapsViewer, { PublicMap } from '../components/PublicMapsViewer';
 import { useAuth } from '../contexts/AuthContext';
+import { SITE_CONTACT_EMAIL, SITE_OWNER_NAME } from '../config/site';
 
 export default function LandingPage() {
   const [selectedMap, setSelectedMap] = useState<PublicMap | null>(null);
@@ -168,6 +169,16 @@ export default function LandingPage() {
           >
             Upload Your Map
           </button>
+        </div>
+      </div>
+
+      <div className="bg-white py-6 border-t border-slate-200">
+        <div className="mx-auto max-w-7xl px-4 text-center text-sm text-slate-600">
+          <span className="font-medium text-slate-800">Project by {SITE_OWNER_NAME}</span>
+          <span className="mx-2">|</span>
+          <a href={`mailto:${SITE_CONTACT_EMAIL}`} className="text-sky-700 hover:underline">
+            {SITE_CONTACT_EMAIL}
+          </a>
         </div>
       </div>
 

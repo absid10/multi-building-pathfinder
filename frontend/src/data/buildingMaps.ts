@@ -46,14 +46,14 @@ const gecaBuildings = {
     }
   },
   buildingA: {
-    name: "Admin Block",
+    name: "Civil Engg Dept Block",
     floors: {
       floor1: gecaAFloor1,
       floor2: gecaAFloor2,
     },
   },
   buildingB: {
-    name: "Academic Block",
+    name: "Admin Block",
     floors: {
       floor1: gecaBFloor1,
       floor2: gecaBFloor2,

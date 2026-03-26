@@ -7,6 +7,9 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Header from "./components/Header";
 import LandingPage from "./pages/LandingPage";
 import DashboardPage from "./pages/DashboardPage";
+import AboutPage from "./pages/AboutPage";
+import FutureEnhancementsPage from "./pages/FutureEnhancementsPage";
+import ContactPage from "./pages/ContactPage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +26,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/future-enhancements" element={<FutureEnhancementsPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route path="/navigate/:mapId" element={<Index />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

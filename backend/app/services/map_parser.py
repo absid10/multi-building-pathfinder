@@ -2,11 +2,43 @@ import json
 import os
 import re
 from typing import Any
+from pathlib import Path
 
 import fitz
 from openai import OpenAI
 
 from app.config import Config
+
+
+def _load_layout_model() -> dict[str, Any]:
+    model_path = Path(__file__).resolve().parents[2] / "data" / "training" / "layout_model.json"
+    if not model_path.exists():
+        return {}
+    try:
+        return json.loads(model_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _apply_layout_priors(text: str, building_count: int, floor_count: int) -> tuple[int, int]:
+    model = _load_layout_model()
+    priors = model.get("keywordPriors", {}) if isinstance(model, dict) else {}
+    if not priors:
+        return building_count, floor_count
+
+    lowered = (text or "").lower()
+    for keyword, prior in priors.items():
+        if keyword in lowered:
+            b = int(prior.get("buildingCount", building_count))
+            f = int(prior.get("floorCount", floor_count))
+            return max(1, b), max(1, f)
+
+    avg_buildings = model.get("avgBuildingCount")
+    avg_floors = model.get("avgFloorCount")
+    if isinstance(avg_buildings, (int, float)) and isinstance(avg_floors, (int, float)):
+        return max(1, int(round(avg_buildings))), max(1, int(round(avg_floors)))
+
+    return building_count, floor_count
 
 
 def _estimate_scale_m_per_unit(text: str) -> float:
@@ -193,7 +225,7 @@ def _ask_openai_for_structure(extracted_text: str) -> dict[str, Any]:
     return parsed
 
 
-def parse_map(file_path: str) -> dict[str, Any]:
+def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
     """Parse a map file and infer building/floor structure.
 
     Uses OpenAI if configured, otherwise falls back to deterministic text heuristics.
@@ -206,7 +238,7 @@ def parse_map(file_path: str) -> dict[str, Any]:
         # For images, OCR can be added here. For now we parse metadata-ish fallback text.
         text = f"Image map file: {os.path.basename(file_path)}"
 
-    if Config.OPENAI_API_KEY:
+    if Config.OPENAI_API_KEY and use_ai:
         try:
             ai_result = _ask_openai_for_structure(text)
             graph = _build_navigable_graph(
@@ -243,6 +275,7 @@ def parse_map(file_path: str) -> dict[str, Any]:
             }
 
     building_count, floor_count = _estimate_counts_from_text(text)
+    building_count, floor_count = _apply_layout_priors(text, building_count, floor_count)
     graph = _build_navigable_graph(building_count, floor_count, text)
     return {
         "buildingCount": building_count,

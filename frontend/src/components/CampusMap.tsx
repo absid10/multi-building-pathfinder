@@ -6,6 +6,7 @@ interface CampusMapProps {
   mapId?: string;
   buildingALabel?: string;
   buildingBLabel?: string;
+  disableBuildingNavigation?: boolean;
 }
 
 export const CampusMap: React.FC<CampusMapProps> = ({
@@ -14,6 +15,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   mapId,
   buildingALabel,
   buildingBLabel,
+  disableBuildingNavigation = false,
 }) => {
   const isGeca = (mapId || "").includes("geca");
 
@@ -61,12 +63,17 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               stroke="black"
               strokeWidth="2"
               opacity="0.85"
-              className="cursor-pointer hover:opacity-100 transition"
+              className={`${disableBuildingNavigation ? "cursor-not-allowed" : "cursor-pointer hover:opacity-100"} transition`}
               onClick={() => onSelectBuilding("buildingA")}
             />
             <text x="545" y="485" textAnchor="middle" fontSize="20" fill="black" fontWeight="600" className="pointer-events-none">
               {buildingALabel || "Admin Block"}
             </text>
+            {disableBuildingNavigation && (
+              <text x="545" y="508" textAnchor="middle" fontSize="12" fill="#333" fontWeight="600" className="pointer-events-none">
+                Mapping Pending
+              </text>
+            )}
 
             <rect
               x="790"
@@ -78,12 +85,17 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               stroke="black"
               strokeWidth="2"
               opacity="0.85"
-              className="cursor-pointer hover:opacity-100 transition"
+              className={`${disableBuildingNavigation ? "cursor-not-allowed" : "cursor-pointer hover:opacity-100"} transition`}
               onClick={() => onSelectBuilding("buildingB")}
             />
             <text x="888" y="396" textAnchor="middle" fontSize="20" fill="black" fontWeight="600" className="pointer-events-none">
               {buildingBLabel || "Academic Block"}
             </text>
+            {disableBuildingNavigation && (
+              <text x="888" y="420" textAnchor="middle" fontSize="12" fill="#333" fontWeight="600" className="pointer-events-none">
+                Mapping Pending
+              </text>
+            )}
 
             {isNavigating && (
               <polyline
