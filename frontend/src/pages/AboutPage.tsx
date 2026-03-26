@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { SITE_CONTACT_EMAIL, SITE_OWNER_NAME } from '../config/site';
+import { SITE_CONTACT_EMAIL } from '../config/site';
 
 export default function AboutPage() {
   const navigate = useNavigate();
@@ -19,12 +19,6 @@ export default function AboutPage() {
           </p>
 
           <div className="mt-8 rounded-2xl border border-sky-100 bg-sky-50 p-5">
-            <p className="text-sm text-slate-700">
-              <span className="font-semibold text-sky-800">Project by:</span> {SITE_OWNER_NAME}
-            </p>
-            <p className="mt-1 text-sm text-slate-700">
-              <span className="font-semibold text-sky-800">Website by:</span> {SITE_OWNER_NAME}
-            </p>
             <p className="mt-1 text-sm text-slate-700">
               <span className="font-semibold text-sky-800">Contact:</span>{' '}
               <a className="text-sky-700 hover:underline" href={`mailto:${SITE_CONTACT_EMAIL}`}>
