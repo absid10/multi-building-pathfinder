@@ -17,19 +17,19 @@ const enhancements = [
 
 export default function FutureEnhancementsPage() {
   return (
-    <div className="min-h-screen bg-slate-50 py-12">
+    <div className="min-h-screen bg-background py-12 text-foreground">
       <div className="mx-auto max-w-6xl px-4">
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm md:p-10">
+        <div className="rounded-3xl border border-slate-200 bg-card p-8 shadow-sm dark:border-slate-800 md:p-10">
           <p className="text-xs uppercase tracking-[0.18em] text-violet-700">Roadmap</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900 md:text-4xl">Future Enhancements</h1>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
+          <h1 className="mt-2 text-3xl font-bold text-slate-900 dark:text-slate-100 md:text-4xl">Future Enhancements</h1>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
             Planned capabilities to evolve this project into a production-grade indoor intelligence platform.
           </p>
 
           <div className="mt-8 grid gap-3 md:grid-cols-2">
             {enhancements.map((item) => (
-              <div key={item} className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                <span className="mr-2 inline-block rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-violet-700">
+              <div key={item} className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                <span className="mr-2 inline-block rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
                   Next
                 </span>
                 {item}
@@ -45,8 +45,8 @@ export default function FutureEnhancementsPage() {
               <LifeBuoy className="h-4 w-4" />
               Support
             </a>
-            <span className="inline-flex items-center gap-2 text-sm text-slate-600">
-              <Sparkles className="h-4 w-4 text-violet-600" />
+            <span className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+              <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
               Want a custom feature? Reach out and we can prioritize it in roadmap.
             </span>
           </div>
