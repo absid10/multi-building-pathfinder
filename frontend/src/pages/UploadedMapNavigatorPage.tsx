@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Home, Navigation, Edit3, X, Save, MousePointer2, GitCommit, GitPullRequest, Trash2, Plus, MapPin, ZoomIn, ZoomOut } from 'lucide-react';
 import { API_BASE } from '../config/api';
@@ -63,6 +63,15 @@ export default function UploadedMapNavigatorPage() {
   const [draftPoiName, setDraftPoiName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [imageOpacity, setImageOpacity] = useState(0.5);
+  // Zoom/pan stored as a viewBox rect so coordinate mapping always stays accurate.
+  const [vbX, setVbX] = useState(0);
+  const [vbY, setVbY] = useState(0);
+  const [vbW, setVbW] = useState<number | null>(null);
+  const [vbH, setVbH] = useState<number | null>(null);
+  const isPanningRef = useRef(false);
+  const didPanRef = useRef(false);
+  const panStartRef = useRef<{ mouseX: number; mouseY: number; svgX: number; svgY: number } | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -139,10 +148,16 @@ export default function UploadedMapNavigatorPage() {
   };
 
   const handleCanvasClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (didPanRef.current) { didPanRef.current = false; return; }
     if (!floor) return;
     const bounds = e.currentTarget.getBoundingClientRect();
-    const x = Math.round(((e.clientX - bounds.left) / bounds.width) * (floor.width || 1000));
-    const y = Math.round(((e.clientY - bounds.top) / bounds.height) * (floor.height || 800));
+    const cw = floor.width || 1000;
+    const ch = floor.height || 800;
+    const curVbW = vbW ?? cw;
+    const curVbH = vbH ?? ch;
+    // Map screen coords through the current viewBox to get SVG canvas coordinates.
+    const x = Math.round(vbX + ((e.clientX - bounds.left) / bounds.width) * curVbW);
+    const y = Math.round(vbY + ((e.clientY - bounds.top) / bounds.height) * curVbH);
 
     if (!editMode) {
       if (path.length > 1) return;
@@ -280,6 +295,81 @@ export default function UploadedMapNavigatorPage() {
     ? `${API_BASE}/maps/files/${encodeURIComponent(mapFileName)}` 
     : null;
 
+  // Zoom/pan via dynamic viewBox — keeps click coordinate mapping always correct.
+  const ZOOM_SCALE_MIN = 0.25; // viewBox width = floor width / ZOOM_SCALE_MAX at minimum
+  const ZOOM_SCALE_MAX = 8;    // viewBox width = floor width / ZOOM_SCALE_MIN at maximum
+
+  const resetZoomPan = () => {
+    setVbX(0); setVbY(0); setVbW(null); setVbH(null);
+  };
+
+  // Map a screen point to SVG canvas coordinates using current viewBox.
+  const screenToSvg = (clientX: number, clientY: number): { x: number; y: number } | null => {
+    const svg = svgRef.current;
+    if (!svg || !floor) return null;
+    const bounds = svg.getBoundingClientRect();
+    const cw = floor.width || 1000;
+    const ch = floor.height || 800;
+    const curVbW = vbW ?? cw;
+    const curVbH = vbH ?? ch;
+    return {
+      x: vbX + ((clientX - bounds.left) / bounds.width) * curVbW,
+      y: vbY + ((clientY - bounds.top) / bounds.height) * curVbH,
+    };
+  };
+
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (!floor || !svgRef.current) return;
+    const cw = floor.width || 1000;
+    const ch = floor.height || 800;
+    const curVbW = vbW ?? cw;
+    const curVbH = vbH ?? ch;
+    const scaleFactor = e.deltaY < 0 ? 1 / 1.15 : 1.15;
+    const newVbW = Math.max(cw / ZOOM_SCALE_MAX, Math.min(cw / ZOOM_SCALE_MIN, curVbW * scaleFactor));
+    const newVbH = Math.max(ch / ZOOM_SCALE_MAX, Math.min(ch / ZOOM_SCALE_MIN, curVbH * scaleFactor));
+    // Keep the point under the cursor fixed in SVG space.
+    const svgPt = screenToSvg(e.clientX, e.clientY);
+    if (!svgPt) return;
+    const bounds = svgRef.current.getBoundingClientRect();
+    const fx = (e.clientX - bounds.left) / bounds.width;
+    const fy = (e.clientY - bounds.top) / bounds.height;
+    setVbX(svgPt.x - fx * newVbW);
+    setVbY(svgPt.y - fy * newVbH);
+    setVbW(newVbW);
+    setVbH(newVbH);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 1 && !(e.button === 0 && (e.altKey || e.metaKey))) return;
+    e.preventDefault();
+    const svgPt = screenToSvg(e.clientX, e.clientY);
+    if (!svgPt) return;
+    isPanningRef.current = true;
+    panStartRef.current = { mouseX: e.clientX, mouseY: e.clientY, svgX: svgPt.x, svgY: svgPt.y };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isPanningRef.current || !panStartRef.current || !floor || !svgRef.current) return;
+    const dx = e.clientX - panStartRef.current.mouseX;
+    const dy = e.clientY - panStartRef.current.mouseY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didPanRef.current = true;
+    const cw = floor.width || 1000;
+    const ch = floor.height || 800;
+    const curVbW = vbW ?? cw;
+    const curVbH = vbH ?? ch;
+    const bounds = svgRef.current.getBoundingClientRect();
+    setVbX(panStartRef.current.svgX - (e.clientX - panStartRef.current.mouseX) / bounds.width * curVbW);
+    setVbY(panStartRef.current.svgY - (e.clientY - panStartRef.current.mouseY) / bounds.height * curVbH);
+  };
+
+  const handleMouseUp = () => {
+    if (isPanningRef.current) {
+      isPanningRef.current = false;
+      panStartRef.current = null;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -385,6 +475,7 @@ export default function UploadedMapNavigatorPage() {
                     setCurrentLocation(null);
                     setSelectedDestination('');
                     setPath([]);
+                    resetZoomPan();
                   }}
                   className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${bIndex === selectedBuilding ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                 >
@@ -405,6 +496,7 @@ export default function UploadedMapNavigatorPage() {
                   setSelectedDestination('');
                   setPath([]);
                   setEditingPoi(null);
+                  resetZoomPan();
                 }}
                 className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${fIndex === selectedFloor ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
               >
@@ -496,9 +588,66 @@ export default function UploadedMapNavigatorPage() {
         )}
 
         {/* Map Canvas */}
-        <div className={`rounded-2xl border-2 ${editMode ? 'border-blue-400 shadow-blue-100 shadow-lg' : 'border-slate-200'} bg-white p-3 transition-all duration-300 relative overflow-hidden`}>
-          <svg 
-            viewBox={`0 0 ${floor.width || 1000} ${floor.height || 800}`} 
+        <div
+          className={`rounded-2xl border-2 ${editMode ? 'border-blue-400 shadow-blue-100 shadow-lg' : 'border-slate-200'} bg-white p-3 transition-all duration-300 relative overflow-hidden`}
+          onWheel={handleWheel}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          style={{ userSelect: 'none' }}
+        >
+          {/* Zoom controls */}
+          <div className="absolute top-4 right-4 z-10 flex flex-col gap-1.5">
+            <button
+              onClick={() => {
+                if (!floor || !svgRef.current) return;
+                const cw = floor.width || 1000;
+                const ch = floor.height || 800;
+                const curVbW = vbW ?? cw;
+                const curVbH = vbH ?? ch;
+                const newVbW = Math.max(cw / ZOOM_SCALE_MAX, curVbW / 1.25);
+                const newVbH = Math.max(ch / ZOOM_SCALE_MAX, curVbH / 1.25);
+                const cx = vbX + curVbW / 2;
+                const cy = vbY + curVbH / 2;
+                setVbX(cx - newVbW / 2); setVbY(cy - newVbH / 2);
+                setVbW(newVbW); setVbH(newVbH);
+              }}
+              className="p-2 rounded-lg bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition text-slate-600"
+              title="Zoom in"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => {
+                if (!floor || !svgRef.current) return;
+                const cw = floor.width || 1000;
+                const ch = floor.height || 800;
+                const curVbW = vbW ?? cw;
+                const curVbH = vbH ?? ch;
+                const newVbW = Math.min(cw / ZOOM_SCALE_MIN, curVbW * 1.25);
+                const newVbH = Math.min(ch / ZOOM_SCALE_MIN, curVbH * 1.25);
+                const cx = vbX + curVbW / 2;
+                const cy = vbY + curVbH / 2;
+                setVbX(cx - newVbW / 2); setVbY(cy - newVbH / 2);
+                setVbW(newVbW); setVbH(newVbH);
+              }}
+              className="p-2 rounded-lg bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition text-slate-600"
+              title="Zoom out"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </button>
+            <button
+              onClick={resetZoomPan}
+              className="p-1.5 rounded-lg bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition text-slate-500 text-xs font-semibold"
+              title="Reset view"
+            >
+              1:1
+            </button>
+          </div>
+          <svg
+            ref={svgRef}
+            viewBox={`${vbX} ${vbY} ${vbW ?? (floor.width || 1000)} ${vbH ?? (floor.height || 800)}`}
             className={`w-full rounded-xl bg-slate-50 shadow-inner border border-slate-100 ${
                editMode && editTool === 'node' ? 'cursor-crosshair' : 
                editMode && editTool === 'delete' ? "cursor-not-allowed" : 'cursor-default'
@@ -711,6 +860,9 @@ export default function UploadedMapNavigatorPage() {
               🏢 {graph.buildings.length} building{graph.buildings.length > 1 ? 's' : ''}, {building.floors.length} floor{building.floors.length > 1 ? 's' : ''}
             </span>
           )}
+          <span className="bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+            🔍 {Math.round((floor.width || 1000) / (vbW ?? (floor.width || 1000)) * 100)}% zoom
+          </span>
         </div>
       </div>
     </div>
