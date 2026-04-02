@@ -19,7 +19,13 @@ export default function LandingPage() {
   const navigate = useNavigate();
 
   const handleExploreMap = () => {
-    navigate(`/navigate/${selectedMap?.id || 'gmch-chhatrapati'}`);
+    const id = selectedMap?.id || 'gmch-chhatrapati';
+    // If id starts with user-, use the uploaded navigator route
+    if (id.startsWith('user-')) {
+      navigate(`/navigate/upload/${id.replace('user-', '')}`);
+    } else {
+      navigate(`/navigate/${id}`);
+    }
   };
 
   const goToDashboardOrPrompt = () => {

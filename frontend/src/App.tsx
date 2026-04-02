@@ -31,6 +31,7 @@ const App = () => (
             <Route path="/future-enhancements" element={<FutureEnhancementsPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/navigate/:mapId" element={<Index />} />
+            <Route path="/navigate/user-:mapId" element={<UploadedMapNavigatorPage />} />
             <Route path="/navigate/upload/:mapId" element={<UploadedMapNavigatorPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

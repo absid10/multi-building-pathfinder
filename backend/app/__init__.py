@@ -7,6 +7,7 @@ from flask_cors import CORS
 from .auth_routes import auth_bp
 from .config import Config
 from .extensions import db, migrate
+from .debug_routes import debug_bp
 from .map_upload_routes import map_upload_bp
 from .routes import api
 
@@ -43,6 +44,7 @@ def create_app() -> Flask:
     app.register_blueprint(api)
     app.register_blueprint(auth_bp)
     app.register_blueprint(map_upload_bp)
+    app.register_blueprint(debug_bp)
 
     @app.get("/")
     def root():
