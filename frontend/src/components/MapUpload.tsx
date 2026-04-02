@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Upload, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Upload, CheckCircle, AlertCircle, Loader, Map as MapIcon, Trash2, Edit3, Eye, EyeOff } from 'lucide-react';
 import { API_BASE } from '../config/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,7 +25,6 @@ export default function MapUpload() {
   const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedMaps, setUploadedMaps] = useState<UploadedMap[]>([]);
-  const [currentAnalyzing, setCurrentAnalyzing] = useState<string | null>(null);
   const [renamingMapId, setRenamingMapId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState('');
 
@@ -85,10 +84,10 @@ export default function MapUpload() {
             })
           );
         } catch {
-          // Keep polling when intermittent network errors happen.
+          // Keep polling
         }
       }
-    }, 2500);
+    }, 3000);
 
     return () => window.clearInterval(intervalId);
   }, [uploadedMaps]);
@@ -118,12 +117,11 @@ export default function MapUpload() {
   const handleFiles = async (files: File[]) => {
     for (const file of files) {
       if (!['image/png', 'image/jpeg', 'application/pdf'].includes(file.type)) {
-        alert('Only PNG, JPG, and PDF files are supported');
+        alert('Only PNG, JPG, and PDF architectural layouts are supported.');
         continue;
       }
 
       const tempId = `temp-${Date.now()}-${Math.random()}`;
-      setCurrentAnalyzing(tempId);
       setUploadedMaps((prev) => [
         {
           id: tempId,
@@ -183,8 +181,6 @@ export default function MapUpload() {
               : m
           )
         );
-      } finally {
-        setTimeout(() => setCurrentAnalyzing(null), 400);
       }
     }
   };
@@ -204,20 +200,12 @@ export default function MapUpload() {
       });
 
       if (!response.ok) throw new Error('Privacy update failed');
-
       const payload = await response.json();
       setUploadedMaps((prev) =>
-        prev.map((m) =>
-          m.id === mapId
-            ? {
-                ...m,
-                isPublic: Boolean(payload.isPublic),
-              }
-            : m
-        )
+        prev.map((m) => (m.id === mapId ? { ...m, isPublic: Boolean(payload.isPublic) } : m))
       );
     } catch {
-      alert('Could not update visibility. Please try again.');
+      alert('Could not update visibility.');
     }
   };
 
@@ -230,7 +218,7 @@ export default function MapUpload() {
       if (!response.ok) throw new Error('Delete failed');
       setUploadedMaps((prev) => prev.filter((m) => m.id !== mapId));
     } catch {
-      alert('Could not delete map. Please try again.');
+      alert('Could not delete map.');
     }
   };
 
@@ -241,10 +229,7 @@ export default function MapUpload() {
 
   const saveRename = async (mapId: string) => {
     const name = renameDraft.trim();
-    if (!name) {
-      alert('Name cannot be empty.');
-      return;
-    }
+    if (!name) return alert('Name cannot be empty.');
 
     try {
       const response = await fetch(`${API_BASE}/maps/${mapId}/name`, {
@@ -256,193 +241,171 @@ export default function MapUpload() {
         body: JSON.stringify({ name }),
       });
 
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error || 'Rename failed');
-      }
-
+      if (!response.ok) throw new Error('Rename failed');
       const payload = await response.json();
       setUploadedMaps((prev) =>
-        prev.map((m) =>
-          m.id === mapId
-            ? {
-                ...m,
-                name: payload.name,
-              }
-            : m
-        )
+        prev.map((m) => (m.id === mapId ? { ...m, name: payload.name } : m))
       );
       setRenamingMapId(null);
-      setRenameDraft('');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Could not rename map');
+      alert('Could not rename map');
     }
   };
 
-  const analyzingMap = uploadedMaps.find((m) => m.id === currentAnalyzing);
-
   return (
-    <div className="space-y-6">
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-lg p-12 text-center transition ${
-          isDragging
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-            : 'border-gray-300 bg-gray-50 hover:border-blue-400 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500'
-        }`}
-      >
-        <input
-          type="file"
-          multiple
-          accept=".png,.jpg,.jpeg,.pdf"
-          onChange={handleFileSelect}
-          className="hidden"
-          id="file-input"
-        />
-        <label htmlFor="file-input" className="flex flex-col items-center gap-3 cursor-pointer">
-          <Upload className="w-12 h-12 text-blue-600" />
-          <div>
-            <p className="text-lg font-semibold text-gray-900 dark:text-slate-100">Drag and drop your architectural maps here</p>
-            <p className="text-sm text-gray-600 mt-1 dark:text-slate-300">or click to select PNG, JPG, or PDF files</p>
-          </div>
-          <p className="text-xs text-gray-500 mt-2 dark:text-slate-400">Supported formats: PNG, JPG, PDF (up to 25MB each)</p>
-        </label>
-      </div>
-
-      {currentAnalyzing && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 text-center dark:bg-slate-900">
-            <Loader className="w-16 h-16 text-blue-600 mx-auto animate-spin mb-6" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-2 dark:text-slate-100">Analyzing Your Map</h3>
-            <p className="text-gray-600 mb-6 dark:text-slate-300">Our AI is analyzing your architectural layout...</p>
-            <div className="space-y-3 text-sm text-gray-600 dark:text-slate-300">
-              <div className="flex items-center gap-3 justify-center">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>File uploaded successfully</span>
-              </div>
-              <div className="flex items-center gap-3 justify-center">
-                <Loader className="w-5 h-5 text-blue-600 animate-spin" />
-                <span>Detecting buildings and floors...</span>
-              </div>
-              <div className="flex items-center gap-3 justify-center">
-                <div className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-slate-600"></div>
-                <span>Extracting waypoints</span>
-              </div>
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Upload Zone */}
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 text-center transition-all duration-200">
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`relative border-2 border-dashed rounded-xl p-10 transition-colors ${
+            isDragging
+              ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20'
+              : 'border-slate-300 hover:border-indigo-400 dark:border-slate-700 dark:hover:border-indigo-500'
+          }`}
+        >
+          <input
+            type="file"
+            multiple
+            accept=".png,.jpg,.jpeg,.pdf"
+            onChange={handleFileSelect}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            title=""
+          />
+          <div className="pointer-events-none flex flex-col items-center gap-4">
+            <div className="p-3 bg-indigo-100 text-indigo-600 rounded-full dark:bg-indigo-900/50 dark:text-indigo-400">
+              <Upload className="w-8 h-8" />
             </div>
-            <div className="mt-6">
-              <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-slate-700">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${analyzingMap?.progress || 20}%` }}
-                ></div>
-              </div>
-              <p className="text-xs text-gray-500 mt-2 dark:text-slate-400">{(analyzingMap?.progress || 20).toFixed(0)}%</p>
+            <div>
+              <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                Upload Architectural Layout
+              </p>
+              <p className="text-sm text-slate-500 mt-1">
+                Drag and drop your floorplans here to start AI mapping
+              </p>
             </div>
+            <p className="text-xs text-slate-400 font-medium tracking-wide uppercase">
+              Supported: PNG, JPG, PDF
+            </p>
           </div>
         </div>
-      )}
+      </div>
 
+      {/* Uploaded Maps */}
       {uploadedMaps.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6 dark:bg-slate-900">
-          <h3 className="text-xl font-bold text-gray-900 mb-4 dark:text-slate-100">Your Uploaded Maps</h3>
-          <div className="space-y-3">
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 px-1">
+            Your Scanned Layouts
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {uploadedMaps.map((map) => (
-              <div key={map.id} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800/60">
-                <div className="w-16 h-16 rounded-lg bg-gray-200 flex-shrink-0 overflow-hidden dark:bg-slate-700">
-                  {map.thumbnail ? (
-                    <img src={map.thumbnail} alt={map.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-slate-300">PDF</div>
-                  )}
-                </div>
-
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    {renamingMapId === map.id ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          value={renameDraft}
-                          onChange={(e) => setRenameDraft(e.target.value)}
-                          className="rounded border border-gray-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-                        />
-                        <button
-                          onClick={() => saveRename(map.id)}
-                          className="px-2 py-1 text-xs font-semibold rounded bg-blue-600 text-white"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={() => {
-                            setRenamingMapId(null);
-                            setRenameDraft('');
-                          }}
-                          className="px-2 py-1 text-xs font-semibold rounded bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-slate-200"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+              <div
+                key={map.id}
+                className="group flex flex-col p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                <div className="flex items-start gap-4">
+                  {/* Thumbnail */}
+                  <div className="w-16 h-16 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0">
+                    {map.status === 'analyzing' ? (
+                      <Loader className="w-6 h-6 text-indigo-500 animate-spin" />
+                    ) : map.thumbnail ? (
+                      <img src={map.thumbnail} alt={map.name} className="w-full h-full object-cover" />
                     ) : (
-                      <h4 className="font-semibold text-gray-900 dark:text-slate-100">{map.name}</h4>
-                    )}
-                    {map.status === 'analyzed' && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                        <CheckCircle className="w-3 h-3" />
-                        Ready
-                      </span>
-                    )}
-                    {map.status === 'analyzing' && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
-                        <Loader className="w-3 h-3 animate-spin" />
-                        Analyzing
-                      </span>
-                    )}
-                    {map.status === 'error' && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">
-                        <AlertCircle className="w-3 h-3" />
-                        Error
-                      </span>
+                      <MapIcon className="w-6 h-6 text-slate-400" />
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-slate-400">{map.uploadDate}</p>
-                  {map.buildingCount && map.floorCount && (
-                    <p className="text-xs text-gray-600 mt-1 dark:text-slate-300">{map.buildingCount} building(s), {map.floorCount} floor(s)</p>
-                  )}
-                  {map.error && <p className="text-xs text-red-600 mt-1">{map.error}</p>}
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    {renamingMapId === map.id ? (
+                      <div className="flex items-center gap-2 mb-1">
+                        <input
+                          autoFocus
+                          value={renameDraft}
+                          onChange={(e) => setRenameDraft(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && saveRename(map.id)}
+                          className="w-full px-2 py-1 text-sm border rounded focus:ring-1 focus:outline-none dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                        />
+                        <button onClick={() => saveRename(map.id)} className="text-indigo-600 font-medium text-sm">Save</button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <h4 className="font-semibold text-slate-800 dark:text-slate-100 truncate" title={map.name}>
+                          {map.name}
+                        </h4>
+                        {map.status === 'analyzing' && (
+                          <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full dark:bg-indigo-500/10 dark:text-indigo-400">
+                            Scanning...
+                          </span>
+                        )}
+                        {map.status === 'error' && (
+                          <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" /> Error
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 truncate">
+                      Uploaded {map.uploadDate.split(',')[0]}
+                    </p>
+
+                    {/* Metadata / Error */}
+                    {map.error ? (
+                      <p className="text-xs text-red-500 truncate" title={map.error}>{map.error}</p>
+                    ) : map.buildingCount ? (
+                      <div className="flex gap-2">
+                        <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md">
+                          {map.buildingCount} Building{map.buildingCount !== 1 && 's'}
+                        </span>
+                        <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md">
+                          {map.floorCount} Floor{map.floorCount !== 1 && 's'}
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
 
-                <div className="flex gap-2">
-                  {map.status === 'analyzed' && (
+                {/* Actions */}
+                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-3">
                     <button
-                      onClick={() => navigate(`/navigate/upload/${map.id}`)}
-                      className="px-3 py-2 rounded-lg text-sm font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+                      onClick={() => startRename(map)}
+                      className="text-slate-500 hover:text-indigo-600 transition"
+                      title="Rename Layout"
                     >
-                      Explore
+                      <Edit3 className="w-4 h-4" />
                     </button>
-                  )}
-                  <button
-                    onClick={() => startRename(map)}
-                    className="px-3 py-2 rounded-lg text-sm font-semibold bg-amber-100 text-amber-700 hover:bg-amber-200 transition"
-                  >
-                    Rename
-                  </button>
-                  {map.status === 'analyzed' && (
+                    {map.status === 'analyzed' && (
+                      <button
+                        onClick={() => toggleMapVisibility(map.id)}
+                        className={`transition ${map.isPublic ? 'text-green-600' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                        title={map.isPublic ? "Currently Public" : "Currently Private"}
+                      >
+                        {map.isPublic ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="flex gap-2">
                     <button
-                      onClick={() => toggleMapVisibility(map.id)}
-                      className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-                        map.isPublic ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      onClick={() => deleteMap(map.id)}
+                      className="text-slate-500 hover:text-red-600 transition"
+                      title="Delete Map"
                     >
-                      {map.isPublic ? 'Public' : 'Private'}
+                      <Trash2 className="w-4 h-4" />
                     </button>
-                  )}
-                  <button
-                    onClick={() => deleteMap(map.id)}
-                    className="px-3 py-2 rounded-lg text-sm font-semibold bg-red-100 text-red-700 hover:bg-red-200 transition"
-                  >
-                    Delete
-                  </button>
+                    {map.status === 'analyzed' && (
+                      <button
+                        onClick={() => navigate(`/navigate/upload/${map.id}`)}
+                        className="px-3 py-1 text-xs font-semibold bg-indigo-600 text-white rounded hover:bg-indigo-700 transition shadow-sm"
+                      >
+                        Explore Graph
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

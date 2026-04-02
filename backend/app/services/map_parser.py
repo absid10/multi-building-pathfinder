@@ -5,7 +5,9 @@ from typing import Any
 from pathlib import Path
 
 import fitz
+import google.generativeai as genai
 from openai import OpenAI
+import PIL.Image
 
 from app.config import Config
 
@@ -224,13 +226,93 @@ def _ask_openai_for_structure(extracted_text: str) -> dict[str, Any]:
 
     return parsed
 
+def _ask_gemini_vision_for_structure(file_path: str) -> dict[str, Any]:
+    if not Config.GEMINI_API_KEY:
+        raise RuntimeError("GEMINI_API_KEY is not configured")
+
+    genai.configure(api_key=Config.GEMINI_API_KEY)
+    model = genai.GenerativeModel("gemini-1.5-pro")
+
+    img = PIL.Image.open(file_path)
+
+    prompt = """
+You are an expert architectural map parser. Analyze this floorplan image and extract its physical routing graph.
+Return ONLY valid JSON format. Do not use code blocks like ```json.
+The structure MUST follow exactly this schema (representing buildings, floors, and a graph of nodes/edges/pois):
+
+{
+  "buildingCount": 1,
+  "floorCount": 1,
+  "confidence": 0.8,
+  "buildings": [{"name": "Main Building", "floors": 1}],
+  "notes": "Extracted from floorplan image",
+  "graph": {
+    "units": {"distance": "meter", "scale_m_per_unit": 0.25},
+    "buildings": [
+      {
+        "name": "Main Building",
+        "floors": [
+          {
+            "id": "floor1",
+            "name": "Ground Floor",
+            "width": 1000,
+            "height": 800,
+            "nodes": [
+               {"id": "n1", "x": 100, "y": 200, "kind": "corridor"},
+               {"id": "n2", "x": 300, "y": 200, "kind": "corridor"},
+               {"id": "stairs_1", "x": 150, "y": 150, "kind": "stairs"}
+            ],
+            "edges": [
+               {"from": "n1", "to": "n2", "distance_m": 5.0, "bidirectional": true},
+               {"from": "n1", "to": "stairs_1", "distance_m": 2.0, "bidirectional": true}
+            ],
+            "pois": [
+               {"id": "room_101", "name": "Room 101", "node": "n2", "icon": "door-open"}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+
+Guidelines:
+1. Estimate reasonable 'x' and 'y' pixel coordinates for the nodes based on the layout paths you see. Max width/height ~ 1000.
+2. Link the corridor nodes together using 'edges'.
+3. Assign POIs (Points of Interest like rooms or entries) and link them to the nearest corridor node.
+"""
+
+    response = model.generate_content([img, prompt])
+    raw = response.text.strip()
+    if raw.startswith("```json"):
+        raw = raw.replace("```json", "", 1).rstrip("`").strip()
+    
+    parsed = json.loads(raw)
+    return parsed
 
 def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
     """Parse a map file and infer building/floor structure.
 
-    Uses OpenAI if configured, otherwise falls back to deterministic text heuristics.
+    Uses Gemini for images if configured, OpenAI for text if configured,
+    otherwise falls back to deterministic heuristics.
     """
     ext = os.path.splitext(file_path)[1].lower()
+
+    if use_ai and ext in {".png", ".jpg", ".jpeg"} and Config.GEMINI_API_KEY:
+        try:
+            result = _ask_gemini_vision_for_structure(file_path)
+            return {
+                "buildingCount": result.get("buildingCount", 1),
+                "floorCount": result.get("floorCount", 1),
+                "confidence": result.get("confidence", 0.8),
+                "buildings": result.get("buildings", []),
+                "graph": result.get("graph", {}),
+                "notes": result.get("notes", "Parsed via Gemini API"),
+                "engine": "gemini-vision",
+                "rawTextLength": 0,
+            }
+        except Exception as exc:
+            pass # Fallback below
 
     if ext == ".pdf":
         text = _extract_pdf_text(file_path)
@@ -241,7 +323,6 @@ def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
         except Exception:
             text = f"Map source file: {os.path.basename(file_path)}"
     else:
-        # For images, OCR can be added here. For now we parse metadata-ish fallback text.
         text = f"Image map file: {os.path.basename(file_path)}"
 
     if Config.OPENAI_API_KEY and use_ai:
@@ -292,7 +373,7 @@ def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
             for i in range(building_count)
         ],
         "graph": graph,
-        "notes": "Heuristic parser used because OPENAI_API_KEY is not set",
+        "notes": "Heuristic parser used because APIs are not set",
         "engine": "heuristic",
         "rawTextLength": len(text),
     }
