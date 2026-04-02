@@ -6,6 +6,7 @@ from pathlib import Path
 
 import fitz
 import google.generativeai as genai
+from PIL import Image
 from openai import OpenAI
 
 from app.config import Config
@@ -283,6 +284,152 @@ def _validate_graph(parsed: dict[str, Any]) -> dict[str, Any]:
     return parsed
 
 
+def _estimate_floor_panels_from_image(file_path: str) -> int:
+    """Estimate number of floor drawings visible in one image.
+
+    Many blueprints place Floor 1 and Floor 2 side-by-side. This detector
+    counts major vertical drawing bands to prevent undercounting floors.
+    """
+    try:
+        img = Image.open(file_path).convert("L")  # grayscale
+        w, h = img.size
+        # Downscale for stability/speed while preserving layout bands.
+        if w > 1400:
+            ratio = 1400 / float(w)
+            img = img.resize((1400, max(1, int(h * ratio))))
+            w, h = img.size
+
+        pixels = img.load()
+        # Count "ink" pixels per x-column (non-white content).
+        ink_counts = []
+        for x in range(w):
+            c = 0
+            for y in range(h):
+                if pixels[x, y] < 238:
+                    c += 1
+            ink_counts.append(c)
+
+        # Smooth with a moving average to remove watermark/noise spikes.
+        window = max(5, w // 120)
+        smoothed = []
+        running = 0
+        for i, val in enumerate(ink_counts):
+            running += val
+            if i >= window:
+                running -= ink_counts[i - window]
+            smoothed.append(running / float(min(i + 1, window)))
+
+        # Dynamic threshold based on content density.
+        mx = max(smoothed) if smoothed else 0
+        if mx <= 0:
+            return 1
+        threshold = max(6.0, mx * 0.22)
+
+        bands: list[tuple[int, int]] = []
+        in_band = False
+        start = 0
+        for i, v in enumerate(smoothed):
+            if v >= threshold and not in_band:
+                in_band = True
+                start = i
+            elif v < threshold and in_band:
+                in_band = False
+                bands.append((start, i - 1))
+        if in_band:
+            bands.append((start, w - 1))
+
+        # Keep only substantial bands (floor drawings), ignore tiny artifacts.
+        min_band_width = max(70, w // 10)
+        major_bands = [b for b in bands if (b[1] - b[0] + 1) >= min_band_width]
+
+        return max(1, min(5, len(major_bands)))
+    except Exception:
+        return 1
+
+
+def _expand_floor_graph_if_needed(parsed: dict[str, Any], target_floor_count: int) -> dict[str, Any]:
+    """If graph has fewer floors than detected panels, clone floor scaffold to match."""
+    graph = parsed.get("graph") or {}
+    buildings = graph.get("buildings") or []
+    if not buildings:
+        return parsed
+
+    b0 = buildings[0]
+    floors = list(b0.get("floors") or [])
+    if not floors:
+        return parsed
+    if len(floors) >= target_floor_count:
+        return parsed
+
+    template = floors[0]
+    for next_floor in range(len(floors) + 1, target_floor_count + 1):
+        src_floor_no = 1
+        dst_floor_no = next_floor
+
+        src_nodes = template.get("nodes", [])
+        src_edges = template.get("edges", [])
+        src_pois = template.get("pois", [])
+
+        def _rid(value: str) -> str:
+            if not isinstance(value, str):
+                return value
+            return re.sub(rf"\bf{src_floor_no}_", f"f{dst_floor_no}_", value)
+
+        new_nodes = []
+        for n in src_nodes:
+            nn = dict(n)
+            if "id" in nn:
+                nn["id"] = _rid(nn["id"])
+            new_nodes.append(nn)
+
+        new_edges = []
+        for e in src_edges:
+            ne = dict(e)
+            if "from" in ne:
+                ne["from"] = _rid(ne["from"])
+            if "to" in ne:
+                ne["to"] = _rid(ne["to"])
+            new_edges.append(ne)
+
+        room_counter = 1
+        new_pois = []
+        for p in src_pois:
+            np = dict(p)
+            if "id" in np:
+                np["id"] = _rid(np["id"])
+            if "node" in np:
+                np["node"] = _rid(np["node"])
+            # Default sequential naming for duplicated unlabeled-style plans.
+            icon = str(np.get("icon", "")).lower()
+            if "stair" in icon:
+                np["name"] = f"Stairs {room_counter}"
+            else:
+                np["name"] = f"Room {room_counter}"
+            room_counter += 1
+            new_pois.append(np)
+
+        new_floor = {
+            "id": f"floor{dst_floor_no}",
+            "name": f"Floor {dst_floor_no}",
+            "width": template.get("width", 1000),
+            "height": template.get("height", 800),
+            "nodes": new_nodes,
+            "edges": new_edges,
+            "pois": new_pois,
+        }
+        floors.append(new_floor)
+
+    b0["floors"] = floors
+    parsed["graph"] = graph
+    parsed["buildingCount"] = max(1, len(buildings))
+    parsed["floorCount"] = max(parsed.get("floorCount", 1), len(floors), target_floor_count)
+
+    if parsed.get("buildings") and isinstance(parsed["buildings"], list):
+        parsed["buildings"][0]["floors"] = parsed["floorCount"]
+
+    return parsed
+
+
 def _ask_gemini_vision_for_structure(file_path: str) -> dict[str, Any]:
     if not Config.GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY is not configured")
@@ -398,6 +545,14 @@ def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
     if use_ai and ext in {".png", ".jpg", ".jpeg"} and Config.GEMINI_API_KEY:
         try:
             result = _ask_gemini_vision_for_structure(file_path)
+            detected_panels = _estimate_floor_panels_from_image(file_path)
+            if detected_panels > int(result.get("floorCount", 1)):
+                result = _expand_floor_graph_if_needed(result, detected_panels)
+                result["floorCount"] = detected_panels
+                existing_notes = (result.get("notes") or "").strip()
+                note = f"Visual panel detector identified {detected_panels} floor plan panels"
+                result["notes"] = f"{existing_notes} | {note}" if existing_notes else note
+
             return {
                 "buildingCount": result.get("buildingCount", 1),
                 "floorCount": result.get("floorCount", 1),
