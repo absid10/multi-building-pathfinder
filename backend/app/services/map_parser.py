@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from io import BytesIO
 from typing import Any
 from pathlib import Path
 
@@ -347,6 +348,148 @@ def _estimate_floor_panels_from_image(file_path: str) -> int:
         return 1
 
 
+def _detect_panel_split_axis(file_path: str) -> tuple[str, int] | None:
+    """Detect a likely split axis and cut position for multi-panel floor plans.
+
+    Returns:
+        (axis, split_index) where axis is 'vertical' or 'horizontal'.
+    """
+    try:
+        img = Image.open(file_path).convert("L")
+        w, h = img.size
+        if w <= 0 or h <= 0:
+            return None
+
+        if w >= h:
+            # Side-by-side plans: look for a low-ink vertical valley near center.
+            sample_cols = []
+            pixels = img.load()
+            for x in range(w):
+                c = 0
+                for y in range(h):
+                    if pixels[x, y] < 238:
+                        c += 1
+                sample_cols.append(c)
+
+            center = w // 2
+            left = max(20, int(w * 0.18))
+            right = min(w - 20, int(w * 0.82))
+            search = sample_cols[left:right]
+            if not search:
+                return None
+            split_x = left + int(min(range(len(search)), key=lambda i: search[i]))
+
+            # Require a meaningful valley between left and right content.
+            left_avg = sum(sample_cols[max(0, split_x - 120):split_x - 20]) / max(1, min(100, max(0, split_x - 20) - max(0, split_x - 120)))
+            right_avg = sum(sample_cols[split_x + 20:min(w, split_x + 120)]) / max(1, min(w, split_x + 120) - (split_x + 20))
+            valley = sample_cols[split_x]
+            edge_avg = (left_avg + right_avg) / 2.0
+            if edge_avg > 0 and valley <= edge_avg * 0.45:
+                return ("vertical", split_x)
+        else:
+            # Stacked plans: look for a low-ink horizontal valley near center.
+            sample_rows = []
+            pixels = img.load()
+            for y in range(h):
+                c = 0
+                for x in range(w):
+                    if pixels[x, y] < 238:
+                        c += 1
+                sample_rows.append(c)
+
+            top = max(20, int(h * 0.18))
+            bottom = min(h - 20, int(h * 0.82))
+            search = sample_rows[top:bottom]
+            if not search:
+                return None
+            split_y = top + int(min(range(len(search)), key=lambda i: search[i]))
+
+            top_avg = sum(sample_rows[max(0, split_y - 120):split_y - 20]) / max(1, min(100, max(0, split_y - 20) - max(0, split_y - 120)))
+            bottom_avg = sum(sample_rows[split_y + 20:min(h, split_y + 120)]) / max(1, min(h, split_y + 120) - (split_y + 20))
+            valley = sample_rows[split_y]
+            edge_avg = (top_avg + bottom_avg) / 2.0
+            if edge_avg > 0 and valley <= edge_avg * 0.45:
+                return ("horizontal", split_y)
+    except Exception:
+        return None
+
+    return None
+
+
+def _crop_image_bytes(file_path: str, box: tuple[int, int, int, int], mime_type: str = "image/png") -> tuple[bytes, str]:
+    with Image.open(file_path) as img:
+        cropped = img.crop(box)
+        buffer = BytesIO()
+        cropped.save(buffer, format="PNG")
+        return buffer.getvalue(), mime_type
+
+
+def _merge_single_floor_results(panel_results: list[dict[str, Any]]) -> dict[str, Any]:
+    """Merge one-floor Gemini results into a single multi-floor result."""
+    buildings = [{"name": "Building 1", "floors": []}]
+    merged_graph = {"units": {"distance": "meter", "scale_m_per_unit": 0.25}, "buildings": [{"name": "Building 1", "floors": []}]}
+    merged_buildings = []
+
+    for idx, result in enumerate(panel_results, start=1):
+        graph = result.get("graph") or {}
+        source_buildings = graph.get("buildings") or []
+        if not source_buildings:
+            continue
+
+        source_floor = (source_buildings[0].get("floors") or [{}])[0]
+        floor = json.loads(json.dumps(source_floor))
+
+        # Re-prefix IDs with the floor index to keep them unique.
+        def _prefix(value: Any) -> Any:
+            if not isinstance(value, str):
+                return value
+            if value.startswith(f"f{idx}_"):
+                return value
+            if value.startswith("floor"):
+                return value
+            return re.sub(r"^", f"f{idx}_", value)
+
+        for node in floor.get("nodes", []):
+            if "id" in node:
+                node["id"] = _prefix(node["id"])
+        for edge in floor.get("edges", []):
+            if "from" in edge:
+                edge["from"] = _prefix(edge["from"])
+            if "to" in edge:
+                edge["to"] = _prefix(edge["to"])
+        for poi in floor.get("pois", []):
+            if "id" in poi:
+                poi["id"] = _prefix(poi["id"])
+            if "node" in poi:
+                poi["node"] = _prefix(poi["node"])
+
+        floor["id"] = f"floor{idx}"
+        floor["name"] = f"Floor {idx}"
+
+        # If Gemini named things poorly, normalize unlabeled rooms into Room N.
+        room_counter = 1
+        for poi in floor.get("pois", []):
+            name = str(poi.get("name", "")).strip().lower()
+            if not name or name in {"room", "poi"} or name.startswith("building "):
+                poi["name"] = f"Room {room_counter}"
+                room_counter += 1
+
+        merged_graph["buildings"][0]["floors"].append(floor)
+        merged_buildings.append({"name": f"Building {idx}", "floors": 1})
+
+    merged = {
+        "buildingCount": 1,
+        "floorCount": max(1, len(merged_graph["buildings"][0]["floors"])),
+        "confidence": min([r.get("confidence", 0.8) for r in panel_results] or [0.8]),
+        "buildings": [{"name": "Building 1", "floors": len(merged_graph["buildings"][0]["floors"])}],
+        "graph": merged_graph,
+        "notes": "Merged multi-panel parse",
+        "engine": "gemini-vision-multi-panel",
+        "rawTextLength": 0,
+    }
+    return _validate_graph(merged)
+
+
 def _expand_floor_graph_if_needed(parsed: dict[str, Any], target_floor_count: int) -> dict[str, Any]:
     """If graph has fewer floors than detected panels, clone floor scaffold to match."""
     graph = parsed.get("graph") or {}
@@ -534,6 +677,61 @@ CRITICAL RULES:
     validated = _validate_graph(parsed)
     return validated
 
+
+def _ask_gemini_vision_for_panel(file_bytes: bytes, mime_type: str, panel_index: int, panel_count: int) -> dict[str, Any]:
+        if not Config.GEMINI_API_KEY:
+                raise RuntimeError("GEMINI_API_KEY is not configured")
+
+        genai.configure(api_key=Config.GEMINI_API_KEY)
+        model = genai.GenerativeModel("gemini-2.0-flash")
+
+        image_part = {"mime_type": mime_type, "data": file_bytes}
+        prompt = f"""You are parsing panel {panel_index} of {panel_count} from a multi-floor blueprint image.
+
+RULES:
+- This panel is exactly ONE floor of the building.
+- Do not combine it with any other panel.
+- Do not invent room names.
+- If a room has no visible label, use Room 1, Room 2, Room 3 in reading order.
+- If a clear label is visible, use it exactly.
+- Keep POIs and node IDs unique within this panel only.
+
+Return strict JSON with this shape:
+{{
+    "buildingCount": 1,
+    "floorCount": 1,
+    "confidence": 0.8,
+    "buildings": [{{"name": "Building 1", "floors": 1}}],
+    "notes": "brief note",
+    "graph": {{
+        "units": {{"distance": "meter", "scale_m_per_unit": 0.25}},
+        "buildings": [{{
+            "name": "Building 1",
+            "floors": [{{
+                "id": "floor1",
+                "name": "Floor 1",
+                "width": 1000,
+                "height": 800,
+                "nodes": [...],
+                "edges": [...],
+                "pois": [...]
+            }}]
+        }}]
+    }}
+}}
+
+Return ONLY valid JSON. No markdown. No extra text."""
+
+        response = model.generate_content([image_part, prompt])
+        raw = response.text.strip()
+        cleaned = _clean_ai_json(raw)
+        try:
+                parsed = json.loads(cleaned)
+        except json.JSONDecodeError as e:
+                raise RuntimeError(f"AI returned invalid JSON for panel {panel_index}: {e}\nRaw output (first 500 chars): {raw[:500]}")
+
+        return _validate_graph(parsed)
+
 def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
     """Parse a map file and infer building/floor structure.
 
@@ -544,14 +742,47 @@ def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
 
     if use_ai and ext in {".png", ".jpg", ".jpeg"} and Config.GEMINI_API_KEY:
         try:
-            result = _ask_gemini_vision_for_structure(file_path)
             detected_panels = _estimate_floor_panels_from_image(file_path)
-            if detected_panels > int(result.get("floorCount", 1)):
-                result = _expand_floor_graph_if_needed(result, detected_panels)
-                result["floorCount"] = detected_panels
-                existing_notes = (result.get("notes") or "").strip()
-                note = f"Visual panel detector identified {detected_panels} floor plan panels"
-                result["notes"] = f"{existing_notes} | {note}" if existing_notes else note
+
+            # Stronger path for multi-panel floor plans: parse each detected panel separately.
+            if detected_panels > 1:
+                axis_split = _detect_panel_split_axis(file_path)
+                if axis_split:
+                    axis, split_index = axis_split
+                    with Image.open(file_path) as img:
+                        w, h = img.size
+                    panel_results: list[dict[str, Any]] = []
+                    if axis == "vertical":
+                        with Image.open(file_path) as img:
+                            left_bytes, mime_type = _crop_image_bytes(file_path, (0, 0, split_index, h))
+                            right_bytes, _ = _crop_image_bytes(file_path, (split_index, 0, w, h), mime_type)
+                        panel_results.append(_ask_gemini_vision_for_panel(left_bytes, mime_type, 1, 2))
+                        panel_results.append(_ask_gemini_vision_for_panel(right_bytes, mime_type, 2, 2))
+                    else:
+                        with Image.open(file_path) as img:
+                            top_bytes, mime_type = _crop_image_bytes(file_path, (0, 0, w, split_index))
+                            bottom_bytes, _ = _crop_image_bytes(file_path, (0, split_index, w, h), mime_type)
+                        panel_results.append(_ask_gemini_vision_for_panel(top_bytes, mime_type, 1, 2))
+                        panel_results.append(_ask_gemini_vision_for_panel(bottom_bytes, mime_type, 2, 2))
+
+                    result = _merge_single_floor_results(panel_results)
+                    result["notes"] = f"Multi-panel parse using Gemini panel split ({axis})"
+                else:
+                    result = _ask_gemini_vision_for_structure(file_path)
+                    if detected_panels > int(result.get("floorCount", 1)):
+                        result = _expand_floor_graph_if_needed(result, detected_panels)
+                        result["floorCount"] = detected_panels
+                        existing_notes = (result.get("notes") or "").strip()
+                        note = f"Visual panel detector identified {detected_panels} floor plan panels"
+                        result["notes"] = f"{existing_notes} | {note}" if existing_notes else note
+            else:
+                result = _ask_gemini_vision_for_structure(file_path)
+                if detected_panels > int(result.get("floorCount", 1)):
+                    result = _expand_floor_graph_if_needed(result, detected_panels)
+                    result["floorCount"] = detected_panels
+                    existing_notes = (result.get("notes") or "").strip()
+                    note = f"Visual panel detector identified {detected_panels} floor plan panels"
+                    result["notes"] = f"{existing_notes} | {note}" if existing_notes else note
 
             return {
                 "buildingCount": result.get("buildingCount", 1),
