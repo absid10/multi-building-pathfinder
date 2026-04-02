@@ -7,7 +7,6 @@ from pathlib import Path
 import fitz
 import google.generativeai as genai
 from openai import OpenAI
-import PIL.Image
 
 from app.config import Config
 
@@ -233,7 +232,8 @@ def _ask_gemini_vision_for_structure(file_path: str) -> dict[str, Any]:
     genai.configure(api_key=Config.GEMINI_API_KEY)
     model = genai.GenerativeModel("gemini-1.5-pro")
 
-    img = PIL.Image.open(file_path)
+    # Use genai file API directly
+    uploaded_file = genai.upload_file(file_path)
 
     prompt = """
 You are an expert architectural map parser. Analyze this floorplan image and extract its physical routing graph.
@@ -282,7 +282,7 @@ Guidelines:
 3. Assign POIs (Points of Interest like rooms or entries) and link them to the nearest corridor node.
 """
 
-    response = model.generate_content([img, prompt])
+    response = model.generate_content([uploaded_file, prompt])
     raw = response.text.strip()
     if raw.startswith("```json"):
         raw = raw.replace("```json", "", 1).rstrip("`").strip()
