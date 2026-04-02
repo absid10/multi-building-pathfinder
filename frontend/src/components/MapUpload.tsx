@@ -168,6 +168,11 @@ export default function MapUpload() {
               : m
           )
         );
+
+        // Auto-navigate to the map editor after successful analysis
+        if (map.status === 'analyzed') {
+          navigate(`/navigate/upload/${map.id}`);
+        }
       } catch (err) {
         setUploadedMaps((prev) =>
           prev.map((m) =>

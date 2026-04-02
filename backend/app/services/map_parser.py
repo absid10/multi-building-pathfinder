@@ -225,49 +225,139 @@ def _ask_openai_for_structure(extracted_text: str) -> dict[str, Any]:
 
     return parsed
 
+def _clean_ai_json(raw: str) -> str:
+    """Strip markdown fences, trailing commas, and other common AI JSON issues."""
+    text = raw.strip()
+    # Remove markdown code fences
+    if text.startswith("```"):
+        first_nl = text.find("\n")
+        if first_nl > 0:
+            text = text[first_nl + 1:]
+        text = text.rstrip("`").strip()
+    # Remove trailing commas before } or ]
+    text = re.sub(r",\s*([}\]])", r"\1", text)
+    return text
+
+
+def _validate_graph(parsed: dict[str, Any]) -> dict[str, Any]:
+    """Ensure the parsed graph has the required structure. Fill defaults if needed."""
+    graph = parsed.get("graph", {})
+    buildings = graph.get("buildings", [])
+
+    if not buildings:
+        # Create a minimal scaffold so the frontend can still render
+        parsed.setdefault("buildingCount", 1)
+        parsed.setdefault("floorCount", 1)
+        parsed["graph"] = {
+            "units": {"distance": "meter", "scale_m_per_unit": 0.25},
+            "buildings": [{
+                "name": "Building 1",
+                "floors": [{
+                    "id": "floor1",
+                    "name": "Floor 1",
+                    "width": 1000,
+                    "height": 800,
+                    "nodes": [],
+                    "edges": [],
+                    "pois": [],
+                }]
+            }]
+        }
+        parsed["buildings"] = [{"name": "Building 1", "floors": 1}]
+        return parsed
+
+    # Ensure every floor has the required keys
+    for bldg in buildings:
+        for floor in bldg.get("floors", []):
+            floor.setdefault("nodes", [])
+            floor.setdefault("edges", [])
+            floor.setdefault("pois", [])
+            floor.setdefault("width", 1000)
+            floor.setdefault("height", 800)
+
+    # Re-count from actual graph data
+    total_floors = sum(len(b.get("floors", [])) for b in buildings)
+    parsed["buildingCount"] = max(1, len(buildings))
+    parsed["floorCount"] = max(1, total_floors)
+
+    return parsed
+
+
 def _ask_gemini_vision_for_structure(file_path: str) -> dict[str, Any]:
     if not Config.GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY is not configured")
 
     genai.configure(api_key=Config.GEMINI_API_KEY)
-    model = genai.GenerativeModel("gemini-1.5-pro")
+    model = genai.GenerativeModel("gemini-2.0-flash")
 
-    # Use genai file API directly
-    uploaded_file = genai.upload_file(file_path)
+    # Read file bytes directly for inline upload (more reliable on Render)
+    import mimetypes
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if not mime_type:
+        mime_type = "image/png"
 
-    prompt = """
-You are an expert architectural map parser. Analyze this floorplan image and extract its physical routing graph.
-Return ONLY valid JSON format. Do not use code blocks like ```json.
-The structure MUST follow exactly this schema (representing buildings, floors, and a graph of nodes/edges/pois):
+    with open(file_path, "rb") as f:
+        image_bytes = f.read()
+
+    image_part = {"mime_type": mime_type, "data": image_bytes}
+
+    prompt = """You are an expert architectural floor plan analyzer. Study the uploaded blueprint image carefully.
+
+YOUR TASK: Extract a complete indoor navigation graph from this floor plan image.
+
+STEP 1 — OBSERVE THE IMAGE:
+- Count how many SEPARATE floor plan drawings are shown. If you see two plans side-by-side, that means 2 floors. If you see one plan, that means 1 floor.
+- Each separate plan drawing = one floor of the SAME building (Building 1).
+- Look for rooms (enclosed rectangular areas), hallways/corridors (connecting spaces), doors (openings in walls), and staircases (hatched rectangles or staircase symbols).
+
+STEP 2 — NAME THE ROOMS:
+- If a room has a CLEAR TEXT LABEL written on it (like "Kitchen", "Office 101"), use that exact label.
+- If a room has NO text label or only an AREA measurement (like "A:10.34 m2" or "14.03 m²"), name it sequentially: "Room 1", "Room 2", "Room 3", etc. Number them left-to-right, top-to-bottom for each floor.
+- NEVER invent names like "Admission", "Lab", "Classroom" unless those words are literally printed on the blueprint.
+- Label staircases as "Stairs 1", "Stairs 2".
+- Label the main entrance as "Entrance".
+
+STEP 3 — BUILD THE NAVIGATION GRAPH:
+- Place corridor nodes along hallways and at junctions/intersections. Use coordinates scaled to a 1000x800 canvas.
+- For each room, place a POI node at the room's approximate center position.
+- Connect corridor nodes with edges along the hallways.
+- Connect each room's POI to the nearest corridor node via an edge (representing the doorway).
+- Connect staircase nodes to adjacent corridor nodes.
+- Estimate distance_m between connected nodes based on visual proportions.
+
+STEP 4 — RETURN STRICT JSON (no markdown, no explanation, no code fences):
 
 {
   "buildingCount": 1,
-  "floorCount": 1,
+  "floorCount": <number_of_floor_plans_visible>,
   "confidence": 0.8,
-  "buildings": [{"name": "Main Building", "floors": 1}],
-  "notes": "Extracted from floorplan image",
+  "buildings": [{"name": "Building 1", "floors": <number_of_floor_plans_visible>}],
+  "notes": "<brief description>",
   "graph": {
     "units": {"distance": "meter", "scale_m_per_unit": 0.25},
     "buildings": [
       {
-        "name": "Main Building",
+        "name": "Building 1",
         "floors": [
           {
             "id": "floor1",
-            "name": "Ground Floor",
+            "name": "Floor 1",
             "width": 1000,
             "height": 800,
             "nodes": [
-               {"id": "n1", "x": 100, "y": 200, "kind": "corridor"},
-               {"id": "n2", "x": 300, "y": 200, "kind": "corridor"},
-               {"id": "stairs_1", "x": 150, "y": 150, "kind": "stairs"}
+              {"id": "f1_c1", "x": 200, "y": 400, "kind": "corridor"},
+              {"id": "f1_c2", "x": 500, "y": 400, "kind": "corridor"},
+              {"id": "f1_room1", "x": 150, "y": 200, "kind": "poi"},
+              {"id": "f1_stairs1", "x": 800, "y": 600, "kind": "stairs"}
             ],
             "edges": [
-               {"from": "n1", "to": "n2", "distance_m": 5.0, "bidirectional": true},
-               {"from": "n1", "to": "stairs_1", "distance_m": 2.0, "bidirectional": true}
+              {"from": "f1_c1", "to": "f1_c2", "distance_m": 7.5, "bidirectional": true},
+              {"from": "f1_c1", "to": "f1_room1", "distance_m": 3.0, "bidirectional": true},
+              {"from": "f1_c2", "to": "f1_stairs1", "distance_m": 5.0, "bidirectional": true}
             ],
             "pois": [
-               {"id": "room_101", "name": "Room 101", "node": "n2", "icon": "door-open"}
+              {"id": "poi_f1_room1", "name": "Room 1", "node": "f1_room1", "icon": "door-open"},
+              {"id": "poi_f1_stairs1", "name": "Stairs 1", "node": "f1_stairs1", "icon": "stairs"}
             ]
           }
         ]
@@ -276,20 +366,26 @@ The structure MUST follow exactly this schema (representing buildings, floors, a
   }
 }
 
-Guidelines:
-1. Estimate reasonable 'x' and 'y' pixel coordinates for the nodes based on the layout paths you see. Max width/height ~ 1000.
-2. Link the corridor nodes together using 'edges'.
-3. Assign POIs (Points of Interest like rooms or entries) and link them to the nearest corridor node.
-4. IMPORTANT: If a room name or label is illegible or missing on the blueprint, strictly default to naming them sequentially (e.g. "Room 1", "Room 2", 'Room 3"). Do NOT invent fictional names like "Admission" if they aren't written!
+CRITICAL RULES:
+- Return ONLY valid JSON. No markdown. No code blocks. No explanation text.
+- Each floor must have at least 3 corridor nodes and at least 2 POIs.
+- Node IDs must be unique across the entire graph (prefix with floor like "f1_", "f2_").
+- Every POI must reference a valid node ID in its "node" field.
+- Every edge must reference valid node IDs in "from" and "to" fields.
+- x ranges from 0 to 1000, y ranges from 0 to 800.
 """
 
-    response = model.generate_content([uploaded_file, prompt])
+    response = model.generate_content([image_part, prompt])
     raw = response.text.strip()
-    if raw.startswith("```json"):
-        raw = raw.replace("```json", "", 1).rstrip("`").strip()
-    
-    parsed = json.loads(raw)
-    return parsed
+    cleaned = _clean_ai_json(raw)
+
+    try:
+        parsed = json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"AI returned invalid JSON: {e}\nRaw output (first 500 chars): {raw[:500]}")
+
+    validated = _validate_graph(parsed)
+    return validated
 
 def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
     """Parse a map file and infer building/floor structure.
