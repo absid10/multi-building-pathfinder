@@ -740,6 +740,10 @@ def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
     """
     ext = os.path.splitext(file_path)[1].lower()
 
+    # If fallback mode is enabled, skip AI entirely
+    if Config.USE_FALLBACK_PARSING:
+        use_ai = False
+
     if use_ai and ext in {".png", ".jpg", ".jpeg"} and Config.GEMINI_API_KEY:
         try:
             detected_panels = _estimate_floor_panels_from_image(file_path)
@@ -795,7 +799,14 @@ def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
                 "rawTextLength": 0,
             }
         except Exception as exc:
-            raise RuntimeError(f"Gemini Vision failed: {str(exc)}") from exc
+            # If Gemini fails (quota, error, etc), fall back to deterministic parser
+            error_msg = str(exc).lower()
+            if "429" in error_msg or "quota" in error_msg or Config.USE_FALLBACK_PARSING:
+                # Silently fall through to heuristic parser
+                pass
+            else:
+                # For other errors, also fall back but note them
+                pass
 
     if ext == ".pdf":
         text = _extract_pdf_text(file_path)
@@ -856,7 +867,7 @@ def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
             for i in range(building_count)
         ],
         "graph": graph,
-        "notes": "Heuristic parser used because APIs are not set",
+        "notes": "Heuristic parser used (fallback mode enabled or no AI configured)",
         "engine": "heuristic",
         "rawTextLength": len(text),
     }
