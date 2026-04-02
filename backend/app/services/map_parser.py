@@ -13,6 +13,10 @@ from openai import OpenAI
 from app.config import Config
 
 
+# Minimum distance (in canvas units) any AI-placed node must be from the canvas edge.
+_NODE_INSET = 10.0
+
+
 def _load_layout_model() -> dict[str, Any]:
     model_path = Path(__file__).resolve().parents[2] / "data" / "training" / "layout_model.json"
     if not model_path.exists():
@@ -269,7 +273,6 @@ def _validate_graph(parsed: dict[str, Any]) -> dict[str, Any]:
         return parsed
 
     # Ensure every floor has the required keys and valid node coordinates
-    _NODE_INSET = 10.0  # minimum distance from canvas edge for any node
     for bldg in buildings:
         for floor in bldg.get("floors", []):
             floor.setdefault("nodes", [])

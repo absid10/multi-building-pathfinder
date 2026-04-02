@@ -296,8 +296,8 @@ export default function UploadedMapNavigatorPage() {
     : null;
 
   // Zoom/pan via dynamic viewBox — keeps click coordinate mapping always correct.
-  const ZOOM_SCALE_MIN = 0.25; // viewBox width = floor width / ZOOM_SCALE_MAX at minimum
-  const ZOOM_SCALE_MAX = 8;    // viewBox width = floor width / ZOOM_SCALE_MIN at maximum
+  const ZOOM_SCALE_MIN = 0.25; // at minimum zoom, viewBox = floor-size / ZOOM_SCALE_MIN (largest window)
+  const ZOOM_SCALE_MAX = 8;    // at maximum zoom, viewBox = floor-size / ZOOM_SCALE_MAX (smallest window)
 
   const resetZoomPan = () => {
     setVbX(0); setVbY(0); setVbW(null); setVbH(null);

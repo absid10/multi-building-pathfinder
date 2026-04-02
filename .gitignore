@@ -29,5 +29,5 @@ frontend/dist
 backend/.env
 # Python bytecode
 __pycache__/
-*.py[cod]
+*.py[cod]*
 *.pyo
