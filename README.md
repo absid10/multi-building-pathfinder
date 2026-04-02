@@ -1,267 +1,271 @@
-# Smart Hospital Navigation and Multi-Building Indoor Wayfinder
+# Multi-Building Hospital Pathfinder
 
-Full-stack indoor navigation system for hospitals and campus-style environments with map upload, AI-assisted parsing, route generation, and map sharing workflows.
+A robust indoor navigation platform for complex hospital campuses, designed to compute and visualize optimal routes across **multiple buildings** and **multiple floors** using **A\*** pathfinding, **React + TypeScript**, **Leaflet.js**, and **SVG floor maps**.
 
-![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61dafb?logo=react)
-![Backend](https://img.shields.io/badge/Backend-Flask-000000?logo=flask)
-![Database](https://img.shields.io/badge/Database-SQLAlchemy%20%2F%20PostgreSQL-336791?logo=postgresql)
-![Queue](https://img.shields.io/badge/Queue-Redis%20%2B%20RQ-dc382d?logo=redis)
-![Status](https://img.shields.io/badge/Status-Active%20Development-success)
+---
 
-## What this project includes
+## ✨ Key Highlights
 
-- Interactive multi-building and multi-floor wayfinding UI.
-- A* graph-based routing for seeded and uploaded maps.
-- Upload pipeline for PNG, JPG, and PDF map files.
-- Analysis queue support with fallback inline processing when Redis/RQ is unavailable.
-- Uploaded map management: explore, rename, private/public, delete.
-- Training pipeline for map-layout priors with dashboard visibility.
-- About, Future Enhancements, Contact, and Support sections integrated into the product UI.
+- 🏥 **Multi-Building Navigation**  
+  Supports route transitions across connected hospital buildings.
 
-## Table of Contents
+- 🧭 **Indoor Pathfinding with A\***  
+  Computes efficient shortest paths between selected start and destination points.
 
-- [System Overview](#system-overview)
-- [Feature Highlights](#feature-highlights)
-- [Architecture](#architecture)
-- [Repository Layout](#repository-layout)
-- [API Endpoints](#api-endpoints)
-- [Run Locally](#run-locally)
-- [Training Pipeline](#training-pipeline)
-- [Deployment](#deployment)
-- [Screens and User Flows](#screens-and-user-flows)
-- [Troubleshooting](#troubleshooting)
-- [Roadmap](#roadmap)
+- 🗺️ **Interactive Map Experience**  
+  Uses Leaflet for zooming, panning, markers, and route overlays.
+
+- 🧱 **Floor-Aware Routing**  
+  Handles stairs, elevators, ramps, and floor-to-floor transitions.
+
+- 📍 **SVG-Based Indoor Maps**  
+  Scalable and precise rendering of building layouts and navigation paths.
+
+- ✅ **Type-Safe Frontend Architecture**  
+  Built with TypeScript for maintainability and safer refactoring.
+
+---
+
+## 📌 Table of Contents
+
+- [Project Overview](#project-overview)
+- [Feature Set](#feature-set)
+- [Technology Stack](#technology-stack)
+- [System Workflow](#system-workflow)
+- [Project Structure](#project-structure)
+- [Installation & Setup](#installation--setup)
+- [Running the Application](#running-the-application)
+- [Pathfinding Model](#pathfinding-model)
+- [Configuration](#configuration)
+- [Testing](#testing)
+- [Future Improvements](#future-improvements)
 - [Contributing](#contributing)
+- [License](#license)
 
-## System Overview
+---
 
-The platform has two major layers:
+## Project Overview
 
-1. Frontend application
-	 - React + TypeScript SPA
-	 - Map interaction, routing, upload management, training panel, and documentation pages
+Navigating large hospitals can be challenging due to:
 
-2. Backend application
-	 - Flask API with SQLAlchemy
-	 - Authentication, map upload lifecycle, analysis orchestration, and graph-serving endpoints
+- Multiple interconnected buildings
+- Complex floor layouts
+- Different vertical connectors (stairs/elevators/ramps)
+- Restricted or one-way areas
 
-Map analysis supports two execution modes:
+This project addresses these challenges by modeling indoor spaces as a weighted graph and rendering computed routes directly on interactive maps.
 
-- Primary: Redis + RQ worker queue
-- Fallback: inline analysis in API process if queue is unreachable
+---
 
-This allows local development and production deployments to remain usable under different infra conditions.
+## Feature Set
 
-## Feature Highlights
+### 1) Multi-Building + Multi-Floor Routing
+- Supports point-to-point navigation even when source and destination are in different buildings/floors.
 
-### Indoor Navigation
+### 2) Interactive Indoor Map UI
+- Zoom and pan controls
+- Route polyline overlays
+- Start/end marker placement
 
-- Multi-floor route computation using A*.
-- Building-to-building transitions in seeded maps.
-- Destination selection by POI.
-- Route rendering and live navigation guidance.
+### 3) Graph-Driven Navigation Engine
+- Hallways/intersections represented as nodes
+- Traversable links represented as weighted edges
+- Cross-floor and cross-building connectors included in graph
 
-### Uploaded Map Experience
+### 4) Extensible Data Model
+- Easy addition of new buildings/floors by updating map assets and graph definitions.
 
-- Upload map files from dashboard.
-- Polling-based status updates from analyzing to ready.
-- Explore analyzed uploaded maps in dedicated route:
-	- /navigate/upload/:mapId
-- Rename map directly from dashboard card.
-- Toggle private/public visibility.
-- Delete map with ownership checks.
+---
 
-### AI and Training
-
-- Local training map catalog (reference files + uploads).
-- Retrainable lightweight layout model.
-- Model priors used in heuristic parser when AI inference is unavailable.
-- Training panel shows sample count, source split, and retrain action.
-
-## Architecture
+## Technology Stack
 
 ### Frontend
+- **React**
+- **TypeScript**
+- **Leaflet.js**
 
-- React, TypeScript, Vite
-- Tailwind CSS
-- React Router
-- Lucide Icons
+### Mapping & Visualization
+- **SVG floor plans** for indoor layouts
+- Custom overlay logic for route display
 
-### Backend
+### Data / Utility Layer
+- **Python scripts** (optional) for graph preprocessing or data transformation
 
-- Flask app factory pattern
-- SQLAlchemy models
-- Flask-Migrate
-- Redis + RQ (optional queue path)
-- OpenAI SDK integration (optional)
-- PyMuPDF for PDF text extraction
+---
 
-### Routing and Data Model
+## System Workflow
 
-- Graph entities: nodes, edges, POIs
-- Route engine: A* over weighted edges
-- Uploaded map analysis result persisted as JSON graph payload
+1. **Load Map + Graph Data**  
+   SVG assets and navigation graph metadata are loaded for selected buildings/floors.
 
-## Repository Layout
+2. **Select Route Points**  
+   User selects source and destination.
+
+3. **Compute Route**  
+   A\* algorithm evaluates graph costs and returns the optimal path.
+
+4. **Render Route**  
+   Path is drawn on the map, including transitions across floors/buildings.
+
+5. **Display Navigation Context**  
+   UI can indicate floor switches and connector types (stairs/elevator/etc.).
+
+---
+
+## Project Structure
 
 ```text
-smart-hospital-navigation/
-|- frontend/                  # React + Vite + TypeScript client
-|- backend/                   # Flask API, models, services, scripts
-|- docs/                      # Project docs and plans
-|- references for frontend/   # Reference PDFs for parser/training bootstrap
-|- vercel.json                # Monorepo deploy config for frontend
-|- srsdoc.md                  # Full SRS document for this project
-`- README.md
+multi-building-pathfinder/
+├── public/
+│   ├── maps/                  # SVG maps and static visual assets
+│   └── ...
+├── src/
+│   ├── components/            # Reusable UI + map components
+│   ├── pages/                 # Application pages/views
+│   ├── hooks/                 # Custom React hooks
+│   ├── utils/                 # A* and helper utilities
+│   ├── data/                  # Building/floor graph definitions
+│   ├── types/                 # TypeScript interfaces/types
+│   ├── styles/                # Styling files
+│   ├── App.tsx
+│   └── main.tsx (or index.tsx)
+├── scripts/                   # Python helpers/utilities (if any)
+├── tests/                     # Test suites
+├── package.json
+└── README.md
 ```
 
-## API Endpoints
+> Update paths if your actual repository layout differs.
 
-Base path: /api/v1
+---
 
-### Health and Core
+## Installation & Setup
 
-- GET /health
-- GET /buildings
-- GET /buildings/{buildingCode}/floors
-- GET /floors/{floorId}/map
-- POST /routes
+### Prerequisites
 
-### Authentication
+- **Node.js** 18+ recommended  
+- **npm** (or yarn/pnpm)
 
-- POST /auth/signup
-- POST /auth/login
-- POST /auth/google
-- GET /auth/me
+### Clone and Install
 
-### Maps
-
-- POST /maps/upload
-- GET /maps/list
-- GET /maps/public
-- GET /maps/{mapId}
-- GET /maps/{mapId}/status
-- PATCH /maps/{mapId}/name
-- PATCH /maps/{mapId}/privacy
-- DELETE /maps/{mapId}
-
-### Training
-
-- GET /maps/training
-- POST /maps/training/retrain
-
-## Run Locally
-
-### Backend setup
-
-```powershell
-cd smart-hospital-navigation\backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-copy .env.example .env
-python scripts\migrate_db.py
-python run.py
-```
-
-API default URL: http://localhost:5000
-
-Optional worker (second terminal):
-
-```powershell
-cd smart-hospital-navigation\backend
-.venv\Scripts\activate
-python scripts\run_worker.py
-```
-
-### Frontend setup
-
-```powershell
-cd smart-hospital-navigation\frontend
+```bash
+git clone https://github.com/absid10/multi-building-pathfinder.git
+cd multi-building-pathfinder
 npm install
+```
+
+---
+
+## Running the Application
+
+### Development
+
+```bash
 npm run dev
 ```
 
-Optional frontend env file:
+If your project is CRA-based:
 
-```text
-VITE_API_BASE_URL=http://localhost:5000/api/v1
+```bash
+npm start
 ```
 
-## Training Pipeline
+### Production Build
 
-Bootstrap catalog and retrain local layout model:
-
-```powershell
-cd smart-hospital-navigation\backend
-.venv\Scripts\python.exe scripts\bootstrap_training_maps.py
-.venv\Scripts\python.exe scripts\train_layout_model.py
+```bash
+npm run build
 ```
 
-Generated artifacts:
+### Preview Build (if Vite)
 
-- backend/data/training/catalog.json
-- backend/data/training/layout_model.json
-- backend/data/training/README.md
+```bash
+npm run preview
+```
 
-## Deployment
+---
 
-### Frontend on Vercel
+## Pathfinding Model
 
-This repository includes root-level vercel.json to deploy the frontend app from monorepo context.
+The routing engine uses **A\*** with:
 
-Required environment variable:
+- **g(n)** = accumulated path cost from start
+- **h(n)** = estimated remaining distance (heuristic)
+- **f(n) = g(n) + h(n)**
 
-- VITE_API_BASE_URL=https://<your-backend-domain>/api/v1
+### Graph Components
+- **Nodes**: intersections, room connectors, transition points
+- **Edges**: walkable links with weights (distance/time/restrictions)
+- **Special Links**: stairs/elevators for vertical transitions, connectors for building transitions
 
-### Backend deployment
+---
 
-Deploy backend with the following env variables at minimum:
+## Configuration
 
-- DATABASE_URL
-- SECRET_KEY
-- REDIS_URL (recommended)
-- OPENAI_API_KEY (optional)
-- OPENAI_MODEL
+Recommended configurable modules:
 
-## Screens and User Flows
+- Building/floor metadata
+- Node/edge graph definitions
+- Edge weights and constraints
+- Default map center/zoom
+- Route styling (color, thickness, animation)
 
-- Landing: browse public maps and navigate.
-- Dashboard: manage uploads and training panel.
-- Uploaded map cards: explore, rename, privacy toggle, delete.
-- Uploaded navigator route for generated map graph traversal.
-- About / Future / Contact / Support access from header and footer.
+Keep these in structured files (e.g., `src/data` / `src/config`) for maintainability.
 
-## Troubleshooting
+---
 
-- Upload shows analyzing for long duration:
-	- verify backend API is running
-	- verify Redis worker if queue mode is expected
-	- system should fallback inline if queue is unavailable
+## Testing
 
-- Explore does not open uploaded map:
-	- restart backend after pulling latest changes to load new endpoints
-	- ensure map status is analyzed
+Suggested testing coverage:
 
-- Auth requests timeout locally:
-	- confirm backend .env and DB initialization
-	- run migration script before starting API
+- ✅ Path correctness (shortest-path validation)
+- ✅ No-path scenarios
+- ✅ Cross-floor/building transition logic
+- ✅ UI route rendering and marker behavior
+- ✅ Graph consistency checks (missing nodes/broken links)
 
-## Roadmap
+Run tests:
 
-- Better OCR for image-only floorplans.
-- CAD/BIM ingestion pipeline for richer geometry extraction.
-- Role-based moderation for public maps.
-- End-to-end integration tests for upload to navigation journey.
-- Frontend code-splitting for large bundle optimization.
-- AR-guided indoor navigation and advanced indoor positioning.
+```bash
+npm run test
+```
+
+---
+
+## Future Improvements
+
+- ♿ Accessibility-first routing (elevator-priority/wheelchair-safe paths)
+- 🚧 Temporary closure-aware routing
+- 🗣️ Voice-assisted navigation
+- 📋 Turn-by-turn text instructions
+- 🔍 Department/room search integration
+- 🛠️ Internal admin tool for map + graph editing
+
+---
 
 ## Contributing
 
-1. Create a feature branch.
-2. Keep commits focused and testable.
-3. Validate frontend and backend locally.
-4. Open PR with screenshots for UI-impacting updates.
+Contributions are welcome! 🚀
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes clearly
+4. Open a pull request
+
+Please ensure:
+- Code style consistency
+- Tests are added/updated where needed
+- Changes are focused and documented
 
 ---
-Project by Abdullah Ahmed Siddiqui
+
+## License
+
+Add your preferred license in a `LICENSE` file and reference it here.
+
+Example:
+
+```text
+This project is licensed under the MIT License — see the LICENSE file for details.
+```
+
+If you have not selected a license yet, update this section once finalized.
