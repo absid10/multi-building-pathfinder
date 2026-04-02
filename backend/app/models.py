@@ -71,6 +71,7 @@ class UploadedMap(TimestampMixin, db.Model):
             "uploadDate": self.created_at.isoformat(),
             "thumbnail": self.thumbnail_path,
             "error": self.error_message,
+            "fileName": os.path.basename(self.file_path) if self.file_path else None,
         }
 
 

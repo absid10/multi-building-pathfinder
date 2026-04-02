@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_from_directory
 from .extensions import db
 from .models import User, UploadedMap
 from .auth_routes import verify_token
@@ -25,6 +25,11 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename: str) -> bool:
     """Check if file has allowed extension"""
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@map_upload_bp.get("/files/<path:filename>")
+def serve_map_file(filename: str):
+    """Serve an uploaded map file."""
+    return send_from_directory(os.path.abspath(UPLOAD_FOLDER), filename)
 
 
 def get_current_user_from_request():

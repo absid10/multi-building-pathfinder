@@ -454,6 +454,16 @@ export default function UploadedMapNavigatorPage() {
             }`} 
             onClick={handleCanvasClick}
           >
+            {/* Background Map Image */}
+            {graph.buildings?.[selectedBuilding]?.floors?.[selectedFloor] && (
+               <image 
+                  href={`${API_BASE}/maps/files/${(graph as any).original_file || (graph as any).file_path || ''}`} 
+                  width={floor.width} 
+                  height={floor.height} 
+                  opacity={0.65}
+                  style={{ pointerEvents: 'none' }}
+               />
+            )}
             {/* Draw Path Highlight Preview if drawing edge */}
             {editMode && editTool === 'path' && selectedNode && (
                // Simple UI cue for "connecting" could go here if we tracked mouse.
