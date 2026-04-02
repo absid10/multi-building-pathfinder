@@ -280,6 +280,7 @@ Guidelines:
 1. Estimate reasonable 'x' and 'y' pixel coordinates for the nodes based on the layout paths you see. Max width/height ~ 1000.
 2. Link the corridor nodes together using 'edges'.
 3. Assign POIs (Points of Interest like rooms or entries) and link them to the nearest corridor node.
+4. IMPORTANT: If a room name or label is illegible or missing on the blueprint, strictly default to naming them sequentially (e.g. "Room 1", "Room 2", 'Room 3"). Do NOT invent fictional names like "Admission" if they aren't written!
 """
 
     response = model.generate_content([uploaded_file, prompt])

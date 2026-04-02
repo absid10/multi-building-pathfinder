@@ -97,30 +97,23 @@ def upload_map():
     # Include every uploaded plan in the local training catalog for future retraining.
     add_uploaded_map_to_training(file_path)
 
-    # Queue async AI analysis job.
+    # Run AI synchronously
+    from app.services.map_parser import parse_map
     try:
-        queue = get_analysis_queue()
-        job = queue.enqueue(analyze_uploaded_map_job, uploaded_map.id)
-        uploaded_map.analysis_job_id = job.id
-        db.session.commit()
+        if os.path.exists(file_path):
+            result = parse_map(file_path)
+            uploaded_map.analysis_result = result
+            uploaded_map.building_count = result.get("buildingCount", 1)
+            uploaded_map.floor_count = result.get("floorCount", 1)
+            uploaded_map.status = "analyzed"
+            uploaded_map.analysis_job_id = None
+            db.session.commit()
     except Exception as exc:
-        # Fallback: run analysis inline if Redis/RQ is unavailable.
-        # This keeps uploads usable in local/dev environments.
-        uploaded_map.analysis_job_id = None
+        print(f"Error during inline AI parsing: {exc}")
+        uploaded_map.status = "error"
+        uploaded_map.error_message = str(exc)
         db.session.commit()
-        analyze_uploaded_map_job(uploaded_map.id)
-        uploaded_map = UploadedMap.query.get(uploaded_map.id)
-        if uploaded_map and uploaded_map.status == "error":
-            uploaded_map.error_message = (
-                f"Queue unavailable; inline analysis failed: {uploaded_map.error_message}"
-            )
-            db.session.commit()
-            return jsonify(uploaded_map.to_dict()), 500
-
-        uploaded_map = UploadedMap.query.get(uploaded_map.id)
-        if uploaded_map:
-            uploaded_map.error_message = None
-            db.session.commit()
+        return jsonify({"error": f"AI Parsing failed: {exc}"}), 500
 
     return jsonify(uploaded_map.to_dict()), 201
 
@@ -280,6 +273,34 @@ def delete_map(map_id: int):
     db.session.commit()
 
     return jsonify({"message": "Map deleted successfully"})
+
+@map_upload_bp.put("/<int:map_id>/graph")
+def update_map_graph(map_id: int):
+    """Overwrite the entire graph for a map after making edits."""
+    user = get_current_user_from_request()
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    uploaded_map = UploadedMap.query.get_or_404(map_id)
+    if uploaded_map.user_id != user.id:
+        return jsonify({"error": "Forbidden"}), 403
+
+    data = request.get_json(silent=True) or {}
+    new_graph = data.get("graph")
+    
+    if not new_graph:
+        return jsonify({"error": "No graph provided"}), 400
+
+    new_analysis = dict(uploaded_map.analysis_result) if uploaded_map.analysis_result else {}
+    new_analysis["graph"] = new_graph
+    
+    uploaded_map.analysis_result = new_analysis
+    # SQLAlchemy needs to be told a JSON dictionary was mutated
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(uploaded_map, "analysis_result")
+    
+    db.session.commit()
+    return jsonify({"message": "Graph updated successfully", "graph": new_graph})
 
 @map_upload_bp.patch("/<int:map_id>/graph/poi")
 def rename_poi(map_id: int):
