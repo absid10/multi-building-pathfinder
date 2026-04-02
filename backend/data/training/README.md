@@ -8,7 +8,7 @@ This folder stores the local training catalog and lightweight layout model used 
 
 ## Add More Layouts (including web-sourced plans)
 1. Save map files (`.png`, `.jpg`, `.jpeg`, `.pdf`, `.svg`, `.js`) to either:
-   - `frontend/public/maps/` using GMCH/Leaflet assets (`gmch*`, `*leaflet*`) for reference maps
+   - `frontend/maps/` or `frontend/public/maps/` using GMCH/Leaflet assets (`gmch*`, `*leaflet*`, Leaflet SVG/JS files)
    - `backend/uploads/` (uploaded user maps)
 2. Run:
 

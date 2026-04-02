@@ -64,10 +64,13 @@ def _save_catalog(entries: list[dict[str, Any]]) -> None:
 
 def _find_sample_files() -> list[tuple[Path, str]]:
     candidates: list[tuple[Path, str]] = []
-    gmch_maps_dir = _project_root() / "frontend" / "public" / "maps"
+    gmch_maps_dirs = [
+        _project_root() / "frontend" / "maps",
+        _project_root() / "frontend" / "public" / "maps",
+    ]
     uploads_dir = _backend_root() / "uploads"
 
-    for base_dir, source in ((gmch_maps_dir, "reference"), (uploads_dir, "upload")):
+    for base_dir in gmch_maps_dirs:
         if not base_dir.exists():
             continue
         for item in base_dir.iterdir():
@@ -75,13 +78,22 @@ def _find_sample_files() -> list[tuple[Path, str]]:
                 continue
             is_supported = item.suffix.lower() in SUPPORTED_EXTENSIONS
             lower_name = item.name.lower()
-            is_gmch_reference = source != "reference" or (
+            is_leaflet_source = item.suffix.lower() in {".svg", ".js"}
+            is_gmch_reference = (
                 lower_name.startswith("gmch")
                 or "gmch" in lower_name
                 or "leaflet" in lower_name
+                or is_leaflet_source
             )
             if is_supported and is_gmch_reference:
-                candidates.append((item, source))
+                candidates.append((item, "reference"))
+
+    if uploads_dir.exists():
+        for item in uploads_dir.iterdir():
+            if not item.is_file():
+                continue
+            if item.suffix.lower() in SUPPORTED_EXTENSIONS:
+                candidates.append((item, "upload"))
 
     return candidates
 
