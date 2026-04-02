@@ -29,6 +29,7 @@ A robust indoor navigation platform for complex hospital campuses, designed to c
 ## 📌 Table of Contents
 
 - [Project Overview](#project-overview)
+- [Live Deployment](#-live-deployment)
 - [Feature Set](#feature-set)
 - [Technology Stack](#technology-stack)
 - [System Workflow](#system-workflow)
@@ -54,6 +55,18 @@ Navigating large hospitals can be challenging due to:
 - Restricted or one-way areas
 
 This project addresses these challenges by modeling indoor spaces as a weighted graph and rendering computed routes directly on interactive maps.
+
+---
+
+## 🌐 Live Deployment
+
+- **Frontend (Vercel):** https://multi-building-pathfinder.vercel.app/
+- **Backend API (Render):** https://multi-building-pathfinder.onrender.com
+- **Database:** **Render PostgreSQL** (`multi-building-pathfinder-db`)
+- **Backend Runtime:** Python 3
+- **Database Region:** Ohio (Render)
+
+> Note: Render free instances may take a few seconds to wake up after inactivity.
 
 ---
 
