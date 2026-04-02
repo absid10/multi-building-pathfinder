@@ -280,3 +280,57 @@ def delete_map(map_id: int):
     db.session.commit()
 
     return jsonify({"message": "Map deleted successfully"})
+
+@map_upload_bp.patch("/<int:map_id>/graph/poi")
+def rename_poi(map_id: int):
+    """Rename a specific POI (like a room) inside the map graph."""
+    user = get_current_user_from_request()
+
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    uploaded_map = UploadedMap.query.get_or_404(map_id)
+
+    # Verify ownership
+    if uploaded_map.user_id != user.id:
+        return jsonify({"error": "Forbidden"}), 403
+
+    data = request.get_json(silent=True) or {}
+    poi_id = data.get("poiId")
+    building_idx = data.get("buildingIndex")
+    floor_idx = data.get("floorIndex")
+    new_name = (data.get("name") or "").strip()
+
+    if not all([poi_id, new_name]) or building_idx is None or floor_idx is None:
+        return jsonify({"error": "poiId, name, buildingIndex, and floorIndex are required"}), 400
+
+    if not uploaded_map.analysis_result or "graph" not in uploaded_map.analysis_result:
+        return jsonify({"error": "Map graph not found"}), 404
+
+    try:
+        # Deep modify the JSON structure
+        graph_data = dict(uploaded_map.analysis_result)
+        pois = graph_data["graph"]["buildings"][building_idx]["floors"][floor_idx]["pois"]
+        
+        found = False
+        for poi in pois:
+            if poi["id"] == poi_id:
+                poi["name"] = new_name
+                found = True
+                break
+                
+        if not found:
+            return jsonify({"error": "POI not found in the graph"}), 404
+            
+        # Re-assign to force SQLAlchemy JSON detection
+        uploaded_map.analysis_result = graph_data
+        
+        # SQLAlchemy needs to be told a JSON dictionary was mutated
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(uploaded_map, "analysis_result")
+        
+        db.session.commit()
+        return jsonify({"message": "POI renamed successfully", "graph": graph_data["graph"]})
+        
+    except (KeyError, IndexError, TypeError) as e:
+        return jsonify({"error": "Invalid graph structure or indices."}), 400
