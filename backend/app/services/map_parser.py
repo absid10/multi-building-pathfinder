@@ -313,7 +313,7 @@ def parse_map(file_path: str, use_ai: bool = True) -> dict[str, Any]:
                 "rawTextLength": 0,
             }
         except Exception as exc:
-            pass # Fallback below
+            raise RuntimeError(f"Gemini Vision failed: {str(exc)}") from exc
 
     if ext == ".pdf":
         text = _extract_pdf_text(file_path)
