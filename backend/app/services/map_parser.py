@@ -13,6 +13,10 @@ from openai import OpenAI
 from app.config import Config
 
 
+# Minimum distance (in canvas units) any AI-placed node must be from the canvas edge.
+_NODE_INSET = 10.0
+
+
 def _load_layout_model() -> dict[str, Any]:
     model_path = Path(__file__).resolve().parents[2] / "data" / "training" / "layout_model.json"
     if not model_path.exists():
@@ -268,7 +272,7 @@ def _validate_graph(parsed: dict[str, Any]) -> dict[str, Any]:
         parsed["buildings"] = [{"name": "Building 1", "floors": 1}]
         return parsed
 
-    # Ensure every floor has the required keys
+    # Ensure every floor has the required keys and valid node coordinates
     for bldg in buildings:
         for floor in bldg.get("floors", []):
             floor.setdefault("nodes", [])
@@ -276,6 +280,27 @@ def _validate_graph(parsed: dict[str, Any]) -> dict[str, Any]:
             floor.setdefault("pois", [])
             floor.setdefault("width", 1000)
             floor.setdefault("height", 800)
+
+            # Clamp node coordinates to canvas bounds so nodes are always visible.
+            canvas_w = float(floor.get("width", 1000))
+            canvas_h = float(floor.get("height", 800))
+            valid_node_ids: set[str] = set()
+            for node in floor["nodes"]:
+                node["x"] = max(_NODE_INSET, min(canvas_w - _NODE_INSET, float(node.get("x", canvas_w / 2))))
+                node["y"] = max(_NODE_INSET, min(canvas_h - _NODE_INSET, float(node.get("y", canvas_h / 2))))
+                if "id" in node:
+                    valid_node_ids.add(str(node["id"]))
+
+            # Drop edges that reference missing nodes to avoid broken navigation.
+            floor["edges"] = [
+                e for e in floor["edges"]
+                if str(e.get("from", "")) in valid_node_ids and str(e.get("to", "")) in valid_node_ids
+            ]
+            # Drop POIs that reference missing nodes.
+            floor["pois"] = [
+                p for p in floor["pois"]
+                if str(p.get("node", "")) in valid_node_ids
+            ]
 
     # Re-count from actual graph data
     total_floors = sum(len(b.get("floors", [])) for b in buildings)
@@ -384,7 +409,7 @@ def _detect_panel_split_axis(file_path: str) -> tuple[str, int] | None:
             right_avg = sum(sample_cols[split_x + 20:min(w, split_x + 120)]) / max(1, min(w, split_x + 120) - (split_x + 20))
             valley = sample_cols[split_x]
             edge_avg = (left_avg + right_avg) / 2.0
-            if edge_avg > 0 and valley <= edge_avg * 0.45:
+            if edge_avg > 0 and valley <= edge_avg * 0.52:
                 return ("vertical", split_x)
         else:
             # Stacked plans: look for a low-ink horizontal valley near center.
@@ -408,7 +433,7 @@ def _detect_panel_split_axis(file_path: str) -> tuple[str, int] | None:
             bottom_avg = sum(sample_rows[split_y + 20:min(h, split_y + 120)]) / max(1, min(h, split_y + 120) - (split_y + 20))
             valley = sample_rows[split_y]
             edge_avg = (top_avg + bottom_avg) / 2.0
-            if edge_avg > 0 and valley <= edge_avg * 0.45:
+            if edge_avg > 0 and valley <= edge_avg * 0.52:
                 return ("horizontal", split_y)
     except Exception:
         return None
