@@ -1,58 +1,102 @@
-# Smart Hospital Navigation & Wayfinding System 🏥
+# Multi-Building Indoor Wayfinder
 
-A multi-building hospital indoor navigation system built with **React + TypeScript** (Vite + shadcn-ui), using **Leaflet.js** and **SVG-based floor maps**. An **A\*** pathfinding engine operates on graph-structured JSON data to compute accurate and accessibility-aware routes.
+Frontend application for indoor hospital navigation across multiple buildings and floors.
+The app renders SVG map layers, runs route discovery, and integrates with the backend API for auth, map upload, and navigation workflows.
 
-## 🚀 Features
+## Live App
 
-- Interactive hospital floor maps rendered with Leaflet + SVG overlays
-- **A\*** pathfinding over graph-based map data
-- Multi-building + multi-floor navigation primitives
-- Planned accessibility-aware routing (elevators, ramps, etc.)
-- Planned **Flask + PostgreSQL** backend for map and route storage
+- Frontend (Vercel): https://multi-building-pathfinder.vercel.app/
+- Backend API (Render): https://multi-building-pathfinder.onrender.com
+- API base path used by frontend: `/api/v1`
 
-## 🛠 Tech Stack
+## Core Features
 
-- **Frontend:** React, TypeScript, Vite, Tailwind CSS, shadcn-ui, Leaflet.js
-- **Algorithms & Data:** JSON graph data, A* pathfinding, heuristics
-- **Backend (planned):** Flask, PostgreSQL
+- Multi-building and multi-floor indoor wayfinding UI
+- Interactive map view with routing overlays
+- Start/destination selection and navigation brief generation
+- Authentication-aware flows (email and Google)
+- Public and uploaded map navigation support
 
-## 📂 Project Status & Next Steps
+## Tech Stack
 
-- [ ] Finalize data model for nodes, edges, and building metadata
-- [ ] Render SVG floor maps within Leaflet tiles
-- [ ] Implement A* search across graph data (accessibility toggles)
-- [ ] Visualize computed paths on each floor map
-- [ ] Design Flask + PostgreSQL API surface
-- [ ] Add integration tests + deployment docs
+- React 18 + TypeScript
+- Vite
+- React Router
+- Tailwind CSS + shadcn/ui components
+- Leaflet-based map rendering
+- Custom pathfinding and navigation utilities
 
-> 🎓 B.Tech major project focused on scalable, extensible indoor navigation for hospitals.
+## Project Structure
 
-## 🧑‍💻 Development Options
+```text
+frontend/
+├── public/
+│   ├── maps/
+│   └── site.webmanifest
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── hooks/
+│   ├── contexts/
+│   ├── config/
+│   ├── data/
+│   ├── utils/
+│   ├── App.tsx
+│   └── main.tsx
+└── index.html
+```
 
-### Work locally (recommended)
+## Environment Variables
 
-```sh
-git clone https://github.com/absid10/smart-hospital-navigation.git
-cd smart-hospital-navigation/frontend
+Create `frontend/.env` (or configure in Vercel):
+
+```env
+VITE_API_BASE_URL=https://multi-building-pathfinder.onrender.com/api/v1
+VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+```
+
+Notes:
+
+- `VITE_API_BASE_URL` can be a root URL or `/api/v1`; the app normalizes to `/api/v1`.
+- If unset, the app falls back to the default production backend URL.
+
+## Local Development
+
+```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-### Use Lovable (cloud IDE)
+App runs on Vite dev server (usually `http://localhost:5173`).
 
-- Project URL: https://lovable.dev/projects/0f530f4e-a09e-4cc3-b58d-5f23b7c361e8
-- Edits made in Lovable are committed back to this repository automatically.
+## Build and Preview
 
-### Other options
+```bash
+cd frontend
+npm run build
+npm run preview
+```
 
-- Edit directly in GitHub (pencil icon)
-- Launch GitHub Codespaces for a cloud VS Code experience
+## Deployment (Vercel)
 
-## 🚢 Deployment
+- Framework: Vite
+- Build command: `cd frontend && npm run build`
+- Output directory: `frontend/dist`
 
-- Use Lovable's **Share → Publish** to ship quick previews.
-- Traditional hosting (Vercel, Netlify, etc.) can deploy the Vite build output (`npm run build`).
+Set these Vercel environment variables:
 
-## 🌐 Custom Domains via Lovable
+- `VITE_API_BASE_URL`
+- `VITE_GOOGLE_CLIENT_ID`
 
-Navigate to **Project → Settings → Domains → Connect Domain** inside Lovable. Docs: https://docs.lovable.dev/features/custom-domain#custom-domain
+## Link Preview Metadata
+
+Social preview tags are defined in `frontend/index.html`.
+Current branding uses:
+
+- Title: `Multi-Building Indoor Wayfinder System`
+- Description: `Multi-Building Indoor Wayfinder System`
+
+If previews look stale after deploy, share with a cache-busting query once, for example:
+
+`https://multi-building-pathfinder.vercel.app/?v=2`
