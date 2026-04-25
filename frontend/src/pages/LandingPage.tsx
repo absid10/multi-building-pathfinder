@@ -206,7 +206,17 @@ export default function LandingPage() {
               Support
             </a>
           </div>
-          <p>© 2024 Multi-Building Indoor Wayfinder. Built for hospitals and large complexes.</p>
+          <p>© 2026 Multi-Building Indoor Wayfinder. All Rights Reserved.</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Copying, using, modifying, or distributing this project requires prior written permission.
+            Contact:{" "}
+            <a
+              href={`mailto:${SITE_CONTACT_EMAIL}?subject=Permission%20Request%20-%20Indoor%20Wayfinder`}
+              className="underline decoration-dotted underline-offset-2 hover:text-gray-300"
+            >
+              {SITE_CONTACT_EMAIL}
+            </a>
+          </p>
         </div>
       </div>
     </div>
