@@ -274,4 +274,7 @@ Contributions are welcome.
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is proprietary and protected under an All Rights Reserved license.
+You must obtain prior written permission from the owner before copying,
+using, modifying, distributing, or reusing any part of this project.
+See the LICENSE file for full terms.
