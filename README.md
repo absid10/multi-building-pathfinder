@@ -1,83 +1,216 @@
-# Multi-Building Hospital Pathfinder
+# Multi-Building Indoor Wayfinder System
 
-A robust indoor navigation platform for complex hospital campuses, designed to compute and visualize optimal routes across **multiple buildings** and **multiple floors** using **A\*** pathfinding, **React + TypeScript**, **Leaflet.js**, and **SVG floor maps**.
+Final-year major project focused on indoor navigation across multi-building and multi-floor environments (hospital and campus-style layouts).
 
----
+This platform combines graph-based routing, map ingestion, and modern web deployment to solve a real navigation pain point: helping users move from one indoor location to another quickly and accurately.
 
-## ✨ Key Highlights
+## Project Identity
 
-- 🏥 **Multi-Building Navigation**  
-  Supports route transitions across connected hospital buildings.
+- Project: Smart Hospital Navigation and Multi-Building Indoor Wayfinding Platform
+- Repository: multi-building-pathfinder
+- Academic context: Final Year Project (B.Tech CSE, Batch 2026)
+- Owner: Abdullah Ahmed Siddiqui
+- Email: siddiquiabdullahahmed75@gmail.com
+- GitHub: https://github.com/absid10
+- LinkedIn: https://www.linkedin.com/in/absid10/
 
-- 🧭 **Indoor Pathfinding with A\***  
-  Computes efficient shortest paths between selected start and destination points.
+## Resume Reference Snapshot
 
-- 🗺️ **Interactive Map Experience**  
-  Uses Leaflet for zooming, panning, markers, and route overlays.
+- Profile summary: Aspiring Software Engineer with strong fundamentals in full-stack development, data structures, and databases.
+- Degree context: B.Tech Computer Science and Engineering, Government College of Engineering (GECA), expected 2026.
+- Relevant skills used in this project: React, TypeScript, Python, SQL, Flask, PostgreSQL, Git/GitHub, A* algorithm, graph modeling.
+- Project role alignment: Problem solving, architecture design, API integration, debugging, deployment, and documentation.
 
-- 🧱 **Floor-Aware Routing**  
-  Handles stairs, elevators, ramps, and floor-to-floor transitions.
+## Live Deployment
 
-- 📍 **SVG-Based Indoor Maps**  
-  Scalable and precise rendering of building layouts and navigation paths.
+- Frontend (Vercel): https://multi-building-pathfinder.vercel.app/
+- Backend API (Render): https://multi-building-pathfinder.onrender.com
+- Database (Neon PostgreSQL): configured via DATABASE_URL
+- Health endpoint: https://multi-building-pathfinder.onrender.com/api/v1/health
 
-- ✅ **Type-Safe Frontend Architecture**  
-  Built with TypeScript for maintainability and safer refactoring.
+## Problem Statement
 
----
+Large institutions such as hospitals and colleges are difficult to navigate because of:
 
-## 📌 Table of Contents
+- Multiple connected buildings
+- Multi-floor transitions
+- Complex corridors and intersections
+- User unfamiliarity with the physical layout
 
-- [Project Overview](#project-overview)
-- [Live Deployment](#-live-deployment)
-- [Feature Set](#feature-set)
-- [Technology Stack](#technology-stack)
-- [System Workflow](#system-workflow)
-- [Project Structure](#project-structure)
-- [Installation & Setup](#installation--setup)
-- [Running the Application](#running-the-application)
-- [Pathfinding Model](#pathfinding-model)
-- [Configuration](#configuration)
-- [Testing](#testing)
-- [Future Improvements](#future-improvements)
-- [Contributing](#contributing)
-- [License](#license)
+This project models indoor spaces as weighted graphs and computes shortest routes using A* pathfinding, then visualizes the route on interactive maps.
 
----
+## Core Features
 
-## Project Overview
+- Multi-building and multi-floor routing
+- A* shortest path computation over node-edge graphs
+- Interactive map view with route rendering
+- Auth flows (email/password and Google)
+- Uploaded map pipeline with analysis status tracking
+- Public/private map visibility management
+- Route and map APIs for extensibility
 
-Navigating large hospitals can be challenging due to:
+## Technical Stack
 
-- Multiple interconnected buildings
-- Complex floor layouts
-- Different vertical connectors (stairs/elevators/ramps)
-- Restricted or one-way areas
+Frontend
 
-This project addresses these challenges by modeling indoor spaces as a weighted graph and rendering computed routes directly on interactive maps.
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS + shadcn/ui
 
----
+Backend
 
-## 🌐 Live Deployment
+- Python 3
+- Flask
+- SQLAlchemy + Flask-Migrate
+- JWT auth
+- Optional Redis + RQ worker for async analysis
 
-- **Frontend (Vercel):** https://multi-building-pathfinder.vercel.app/
-- **Backend API (Render):** https://multi-building-pathfinder.onrender.com
-- **Database:** **Neon PostgreSQL**
-- **Backend Runtime:** Python 3
-- **Database Region:** AWS US East 1 (Neon)
+Database and Deployment
 
-> Note: Neon pooler URLs are appropriate for runtime use; keep a direct connection string handy for migrations if needed.
+- Neon PostgreSQL
+- Render (backend hosting)
+- Vercel (frontend hosting)
 
-### Database Migration Status
+## Architecture Overview
 
-- Backend runtime now uses `DATABASE_URL` pointing to Neon.
-- Existing Alembic migration head is applied with `python backend/scripts/migrate_db.py`.
-- Render PostgreSQL service is no longer required by the app.
+- Frontend SPA calls backend REST endpoints under /api/v1
+- Backend persists users/maps/navigation metadata in PostgreSQL (Neon)
+- Optional background worker handles map analysis jobs
+- Graph-based routing engine computes indoor paths and returns route segments
 
-### Verify Deployment Uses Neon
+## Repository Structure
 
-1. Confirm backend health: `https://multi-building-pathfinder.onrender.com/api/v1/health`
-2. In Neon SQL Editor, list tables:
+```text
+multi-building-pathfinder/
+├── backend/
+│   ├── app/
+│   ├── migrations/
+│   ├── scripts/
+│   ├── .env.example
+│   ├── requirements.txt
+│   └── run.py
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   ├── .env.example
+│   ├── package.json
+│   └── vite.config.ts
+├── docs/
+├── srsdoc.md
+├── vercel.json
+└── README.md
+```
+
+## Local Development Setup
+
+Prerequisites
+
+- Node.js 18+
+- Python 3.10+
+- PostgreSQL connection string (Neon or local Postgres)
+
+1. Clone repository
+
+```bash
+git clone https://github.com/absid10/multi-building-pathfinder.git
+cd multi-building-pathfinder
+```
+
+2. Backend setup
+
+```powershell
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+python scripts\migrate_db.py
+python run.py
+```
+
+3. Frontend setup (new terminal)
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend runs on Vite dev server (typically http://localhost:5173) and connects to backend via configured API base URL.
+
+## Environment Variables
+
+Backend (.env)
+
+- DATABASE_URL=postgresql://... (Neon pooled connection recommended at runtime)
+- SECRET_KEY=...
+- TOKEN_EXPIRY=86400
+- GOOGLE_CLIENT_ID=...
+- REDIS_URL=redis://localhost:6379/0
+- UPLOAD_FOLDER=./uploads
+- OPENAI_API_KEY=...
+- OPENAI_MODEL=gpt-4o-mini
+
+Frontend (.env)
+
+- VITE_API_BASE_URL=https://multi-building-pathfinder.onrender.com/api/v1
+- VITE_GOOGLE_CLIENT_ID=...
+
+## Deployment Guide
+
+### Vercel (Frontend)
+
+This repo already includes vercel.json configured for the frontend directory.
+
+- Framework: Vite
+- Install command: cd frontend && npm ci
+- Build command: cd frontend && npm run build
+- Output directory: frontend/dist
+
+Set Vercel environment variables:
+
+- VITE_API_BASE_URL
+- VITE_GOOGLE_CLIENT_ID
+
+### Render (Backend)
+
+Create a Render Web Service pointing to this repository.
+
+Recommended settings:
+
+- Root directory: backend
+- Build command: pip install -r requirements.txt
+- Start command: python run.py
+- Runtime: Python 3
+
+Set Render environment variables:
+
+- DATABASE_URL (Neon connection string)
+- SECRET_KEY
+- TOKEN_EXPIRY
+- GOOGLE_CLIENT_ID
+- REDIS_URL (optional unless worker enabled)
+- OPENAI_API_KEY (optional if AI analysis used)
+- OPENAI_MODEL
+
+After first deploy, run migrations once:
+
+```powershell
+cd backend
+.venv\Scripts\activate
+python scripts\migrate_db.py
+```
+
+### Neon (PostgreSQL)
+
+1. Create Neon project and database.
+2. Copy pooled connection string from Neon dashboard.
+3. Set that value as DATABASE_URL in Render backend service.
+4. Run backend migrations.
+5. Verify table creation and row updates in Neon SQL editor.
+
+Verification query:
 
 ```sql
 select table_name
@@ -86,219 +219,59 @@ where table_schema = 'public'
 order by table_name;
 ```
 
-3. Run row counts before/after a live app action (signup, upload, etc.) to confirm writes land in Neon.
+## API Snapshot
 
----
+Common endpoints:
 
-## Feature Set
-
-### 1) Multi-Building + Multi-Floor Routing
-- Supports point-to-point navigation even when source and destination are in different buildings/floors.
-
-### 2) Interactive Indoor Map UI
-- Zoom and pan controls
-- Route polyline overlays
-- Start/end marker placement
-
-### 3) Graph-Driven Navigation Engine
-- Hallways/intersections represented as nodes
-- Traversable links represented as weighted edges
-- Cross-floor and cross-building connectors included in graph
-
-### 4) Extensible Data Model
-- Easy addition of new buildings/floors by updating map assets and graph definitions.
-
----
-
-## Technology Stack
-
-### Frontend
-- **React**
-- **TypeScript**
-- **Leaflet.js**
-
-### Mapping & Visualization
-- **SVG floor plans** for indoor layouts
-- Custom overlay logic for route display
-
-### Data / Utility Layer
-- **Python scripts** (optional) for graph preprocessing or data transformation
-
----
-
-## System Workflow
-
-1. **Load Map + Graph Data**  
-   SVG assets and navigation graph metadata are loaded for selected buildings/floors.
-
-2. **Select Route Points**  
-   User selects source and destination.
-
-3. **Compute Route**  
-   A\* algorithm evaluates graph costs and returns the optimal path.
-
-4. **Render Route**  
-   Path is drawn on the map, including transitions across floors/buildings.
-
-5. **Display Navigation Context**  
-   UI can indicate floor switches and connector types (stairs/elevator/etc.).
-
----
-
-## Project Structure
-
-```text
-multi-building-pathfinder/
-├── public/
-│   ├── maps/                  # SVG maps and static visual assets
-│   └── ...
-├── src/
-│   ├── components/            # Reusable UI + map components
-│   ├── pages/                 # Application pages/views
-│   ├── hooks/                 # Custom React hooks
-│   ├── utils/                 # A* and helper utilities
-│   ├── data/                  # Building/floor graph definitions
-│   ├── types/                 # TypeScript interfaces/types
-│   ├── styles/                # Styling files
-│   ├── App.tsx
-│   └── main.tsx (or index.tsx)
-├── scripts/                   # Python helpers/utilities (if any)
-├── tests/                     # Test suites
-├── package.json
-└── README.md
-```
-
-> Update paths if your actual repository layout differs.
-
----
-
-## Installation & Setup
-
-### Prerequisites
-
-- **Node.js** 18+ recommended  
-- **npm** (or yarn/pnpm)
-
-### Clone and Install
-
-```bash
-git clone https://github.com/absid10/multi-building-pathfinder.git
-cd multi-building-pathfinder
-npm install
-```
-
----
-
-## Running the Application
-
-### Development
-
-```bash
-npm run dev
-```
-
-If your project is CRA-based:
-
-```bash
-npm start
-```
-
-### Production Build
-
-```bash
-npm run build
-```
-
-### Preview Build (if Vite)
-
-```bash
-npm run preview
-```
-
----
+- GET /api/v1/health
+- POST /api/v1/auth/signup
+- POST /api/v1/auth/login
+- POST /api/v1/auth/google
+- GET /api/v1/auth/me
+- POST /api/v1/routes
+- POST /api/v1/maps/upload
+- GET /api/v1/maps/list
+- GET /api/v1/maps/public
+- GET /api/v1/maps/{mapId}/status
 
 ## Pathfinding Model
 
-The routing engine uses **A\*** with:
+The routing engine is based on A* search:
 
-- **g(n)** = accumulated path cost from start
-- **h(n)** = estimated remaining distance (heuristic)
-- **f(n) = g(n) + h(n)**
+- g(n): path cost from source to current node
+- h(n): heuristic estimate to destination
+- f(n) = g(n) + h(n)
 
-### Graph Components
-- **Nodes**: intersections, room connectors, transition points
-- **Edges**: walkable links with weights (distance/time/restrictions)
-- **Special Links**: stairs/elevators for vertical transitions, connectors for building transitions
+Graph entities:
 
----
+- Nodes: intersections, connectors, room access points
+- Edges: weighted walkable connections
+- Transitions: stairs/elevator/building connectors
 
-## Configuration
+## Final-Year Project Outcomes
 
-Recommended configurable modules:
+- Designed and implemented an end-to-end full-stack wayfinding system
+- Applied graph algorithms (A*) to real navigation datasets
+- Built production-style deployment on Vercel + Render + Neon
+- Implemented modular architecture for future scaling (AI map parsing, role-based access, realtime updates)
 
-- Building/floor metadata
-- Node/edge graph definitions
-- Edge weights and constraints
-- Default map center/zoom
-- Route styling (color, thickness, animation)
+## Future Scope
 
-Keep these in structured files (e.g., `src/data` / `src/config`) for maintainability.
-
----
-
-## Testing
-
-Suggested testing coverage:
-
-- ✅ Path correctness (shortest-path validation)
-- ✅ No-path scenarios
-- ✅ Cross-floor/building transition logic
-- ✅ UI route rendering and marker behavior
-- ✅ Graph consistency checks (missing nodes/broken links)
-
-Run tests:
-
-```bash
-npm run test
-```
-
----
-
-## Future Improvements
-
-- ♿ Accessibility-first routing (elevator-priority/wheelchair-safe paths)
-- 🚧 Temporary closure-aware routing
-- 🗣️ Voice-assisted navigation
-- 📋 Turn-by-turn text instructions
-- 🔍 Department/room search integration
-- 🛠️ Internal admin tool for map + graph editing
-
----
+- AR-assisted indoor guidance
+- CAD/OCR-based automatic graph extraction
+- Accessibility-first routing profiles
+- Crowd-aware dynamic rerouting
+- Multi-tenant enterprise dashboard
 
 ## Contributing
 
-Contributions are welcome! 🚀
+Contributions are welcome.
 
-1. Fork the repository
+1. Fork the repo
 2. Create a feature branch
-3. Commit your changes clearly
-4. Open a pull request
-
-Please ensure:
-- Code style consistency
-- Tests are added/updated where needed
-- Changes are focused and documented
-
----
+3. Commit focused changes
+4. Open a pull request with clear description
 
 ## License
 
-Add your preferred license in a `LICENSE` file and reference it here.
-
-Example:
-
-```text
-This project is licensed under the MIT License — see the LICENSE file for details.
-```
-
-If you have not selected a license yet, update this section once finalized.
+This project is licensed under the MIT License. See the LICENSE file for details.
