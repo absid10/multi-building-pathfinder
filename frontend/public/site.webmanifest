@@ -1,6 +1,6 @@
 {
-	"name": "WayFinder",
-	"short_name": "WayFinder",
+	"name": "Multi-Building Indoor Wayfinder",
+	"short_name": "Wayfinder",
 	"icons": [
 		{
 			"src": "/android-chrome-192x192.png",

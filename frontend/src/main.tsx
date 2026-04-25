@@ -5,6 +5,8 @@ import "./index.css";
 
 const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim();
 
+document.title = "Multi-Building Indoor Wayfinder";
+
 createRoot(document.getElementById("root")!).render(
 	googleClientId ? (
 		<GoogleOAuthProvider clientId={googleClientId}>
