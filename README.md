@@ -62,11 +62,31 @@ This project addresses these challenges by modeling indoor spaces as a weighted 
 
 - **Frontend (Vercel):** https://multi-building-pathfinder.vercel.app/
 - **Backend API (Render):** https://multi-building-pathfinder.onrender.com
-- **Database:** **Render PostgreSQL** (`multi-building-pathfinder-db`)
+- **Database:** **Neon PostgreSQL**
 - **Backend Runtime:** Python 3
-- **Database Region:** Ohio (Render)
+- **Database Region:** AWS US East 1 (Neon)
 
-> Note: Render free instances may take a few seconds to wake up after inactivity.
+> Note: Neon pooler URLs are appropriate for runtime use; keep a direct connection string handy for migrations if needed.
+
+### Database Migration Status
+
+- Backend runtime now uses `DATABASE_URL` pointing to Neon.
+- Existing Alembic migration head is applied with `python backend/scripts/migrate_db.py`.
+- Render PostgreSQL service is no longer required by the app.
+
+### Verify Deployment Uses Neon
+
+1. Confirm backend health: `https://multi-building-pathfinder.onrender.com/api/v1/health`
+2. In Neon SQL Editor, list tables:
+
+```sql
+select table_name
+from information_schema.tables
+where table_schema = 'public'
+order by table_name;
+```
+
+3. Run row counts before/after a live app action (signup, upload, etc.) to confirm writes land in Neon.
 
 ---
 

@@ -47,7 +47,7 @@ python scripts\run_worker.py
 
 Set these in `.env`:
 
-- `DATABASE_URL`
+- `DATABASE_URL` (use your Neon connection string)
 - `SECRET_KEY`
 - `TOKEN_EXPIRY`
 - `GOOGLE_CLIENT_ID` (comma-separated if multiple client IDs)
@@ -55,6 +55,27 @@ Set these in `.env`:
 - `UPLOAD_FOLDER`
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL`
+
+## Neon Setup (Render Backend)
+
+1. In Neon, open **Connect** and copy the pooled PostgreSQL connection string.
+2. In Render backend service, set `DATABASE_URL` to that Neon value.
+3. Redeploy the backend service.
+4. Run schema upgrade once:
+
+```powershell
+cd backend
+.venv\Scripts\activate
+python scripts\migrate_db.py
+```
+
+The migration script applies the existing Alembic head (`flask db upgrade`) for safe deploy-time setup.
+
+### Verify Backend Is Using Neon
+
+- Check Render logs for successful startup without DB errors.
+- Hit `GET /api/v1/health`.
+- In Neon SQL Editor, verify tables and row growth after app actions.
 
 ## API Endpoints
 - GET /api/v1/health
