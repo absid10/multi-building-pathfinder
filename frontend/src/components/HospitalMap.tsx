@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { Node } from "@/utils/pathfinding";
-import { buildingMaps } from "@/data/buildingMaps";
+import type { FrontendBuildings } from "@/services/mapDataApi";
 import {
   Activity,
   Pill,
@@ -24,6 +24,9 @@ interface HospitalMapProps {
   currentLocation: { x: number; y: number } | null;
   destinationNode: Node | null;
   onMapClick: (x: number, y: number) => void;
+  buildings: FrontendBuildings;
+  headingDegrees?: number;
+  headingUpEnabled?: boolean;
 }
 
 type RoomArea = {
@@ -63,6 +66,9 @@ export const HospitalMap = ({
   currentLocation,
   destinationNode,
   onMapClick,
+  buildings,
+  headingDegrees = 0,
+  headingUpEnabled = false,
 }: HospitalMapProps) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -76,7 +82,9 @@ export const HospitalMap = ({
   const pinchRef = useRef({ lastDist: 0, isPinching: false });
   const rafRef = useRef<number | null>(null);
 
-  const mapData = buildingMaps[selectedBuilding].floors[currentFloor];
+  const mapData = buildings[selectedBuilding].floors[currentFloor];
+  // rotationCenter removed — map rotation disabled
+  const mapRotation = 0; // rotation disabled — heading-up removed
 
   const isNodeOnCurrentFloor = (nodeId: string) => {
     if (currentFloor === "floor3") {
@@ -247,7 +255,7 @@ export const HospitalMap = ({
       {/* 🏷️ Map Label */}
       <div className="absolute top-4 right-4 z-10 bg-card/95 backdrop-blur px-4 py-2 rounded-lg shadow-md border border-border">
         <p className="text-sm font-semibold text-foreground">
-          {buildingMaps[selectedBuilding].name} —{" "}
+          {buildings[selectedBuilding].name} —{" "}
           {currentFloor === "floor1" ? "Ground Floor" : currentFloor === "floor2" ? "Floor 2" : "Floor 3"}
         </p>
       </div>
@@ -263,6 +271,7 @@ export const HospitalMap = ({
           ref={viewportRef}
           transform={`translate(${offset.x}, ${offset.y}) scale(${scale})`}
         >
+          <g>
           {/* 🟩 Background grid */}
           <defs>
             <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
@@ -485,6 +494,7 @@ export const HospitalMap = ({
             )}
           </g>
           {/* ✅ --- END OF CONTENT GROUP --- ✅ */}
+          </g>
         </g>
       </svg>
     </div>

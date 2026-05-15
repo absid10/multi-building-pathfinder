@@ -94,6 +94,28 @@ The migration script applies the existing Alembic head (`flask db upgrade`) for 
 - PATCH /api/v1/maps/{mapId}/privacy
 - DELETE /api/v1/maps/{mapId}
 
+## Seed GMCH/GECA Graph Data (from frontend hardcoded maps)
+
+If `/api/v1/buildings` returns `[]`, run this import pipeline once:
+
+```powershell
+# 1) export current hardcoded map graph into backend seed JSON
+cd frontend
+npm install
+npm run export:map-seed
+
+# 2) import JSON into backend DB tables (buildings/floors/nodes/edges/pois)
+cd ..\backend
+.venv\Scripts\activate
+python scripts\import_map_seed.py
+```
+
+After import, verify:
+
+- `GET /api/v1/buildings` should return rows
+- `GET /api/v1/buildings/{buildingCode}/floors` should return floors
+- `GET /api/v1/floors/{floorId}/map` should return nodes/edges/pois
+
 ## Next Backend Steps
 1. Add OCR for image-based map files.
 2. Add retries and dead-letter queue policy for failed map analysis jobs.

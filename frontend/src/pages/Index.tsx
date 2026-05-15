@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { HospitalMap } from "@/components/HospitalMap";
 import { DestinationSelector } from "@/components/DestinationSelector";
 import { findPath, findNearestNode, Node } from "@/utils/pathfinding";
 import { getMapBuildings } from "@/data/buildingMaps";
+import { loadMapBuildingsFromBackend, type FrontendBuildings } from "@/services/mapDataApi";
 import { CampusMap } from "@/components/CampusMap";
 import { toast } from "sonner";
-import { Building2, ArrowRightCircle, Home, ArrowLeft } from "lucide-react";
+import { Building2, ArrowRightCircle, Home, ArrowLeft, Navigation, AlertTriangle, CornerDownRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NavigationBrief } from "@/components/NavigationBrief";
 import { useIndoorTracking } from "@/hooks/useIndoorTracking";
+import { useDeviceHeading } from "@/hooks/useDeviceHeading";
 
 type BuildingId = "buildingA" | "buildingB";
 type FloorId = "floor1" | "floor2" | "floor3";
@@ -54,12 +56,29 @@ const findNearestStairPair = (
 
 
 const Index = () => {
+  const ENABLE_EXPERIMENTAL_TRACKING =
+    String(import.meta.env.VITE_ENABLE_EXPERIMENTAL_TRACKING ?? "false").toLowerCase() === "true";
   const navigate = useNavigate();
   const { mapId } = useParams<{ mapId: string }>();
   const isGecaMap = (mapId || "").includes("geca");
   
-  // Get map-specific building data
-  const currentMapBuildings = getMapBuildings(mapId || 'gmch-chhatrapati');
+  // Get map-specific building data (backend first, hardcoded fallback)
+  const [currentMapBuildings, setCurrentMapBuildings] = useState<FrontendBuildings>(
+    getMapBuildings(mapId || "gmch-chhatrapati") as FrontendBuildings
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    const activeMapId = mapId || "gmch-chhatrapati";
+    loadMapBuildingsFromBackend(activeMapId).then((buildings) => {
+      if (!cancelled) {
+        setCurrentMapBuildings(buildings);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [mapId]);
   
   // (State is unchanged)
   const [selectedBuilding, setSelectedBuilding] = useState<BuildingId | null>(null);
@@ -72,13 +91,40 @@ const Index = () => {
   const [activeFloors, setActiveFloors] = useState<string[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [liveTrackingEnabled, setLiveTrackingEnabled] = useState(true);
+  const [headingUpEnabled, setHeadingUpEnabled] = useState(false);
+  // Orient & Go: user must align before stepping; resets on floor change
+  const [navigationActive, setNavigationActive] = useState(false);
+
+  // Reset navigation active whenever floor changes (floor transition = new alignment needed)
+  useEffect(() => {
+    setNavigationActive(false);
+  }, [currentFloor]);
+
+  // Reset navigationActive when path is cleared
+  useEffect(() => {
+    if (fullPath.length === 0) setNavigationActive(false);
+  }, [fullPath.length]);
   const [pendingBuildingTransition, setPendingBuildingTransition] = useState<{
     destBuilding: BuildingId;
     destFloor: FloorId;
     entryNodeId: string;
     destinationNodeId: string;
   } | null>(null);
-  const trackingState = useIndoorTracking(fullPath, liveTrackingEnabled && fullPath.length > 1);
+  // Always get heading — needed for direction validation, not just heading-up mode
+  const headingState = useDeviceHeading(
+    ENABLE_EXPERIMENTAL_TRACKING && liveTrackingEnabled
+  );
+
+  const trackingState = useIndoorTracking(
+    fullPath,
+    liveTrackingEnabled && fullPath.length > 1,
+    {
+      experimentalEnabled: ENABLE_EXPERIMENTAL_TRACKING,
+      headingDegrees: headingState.heading,
+      headingTrusted: headingState.isFlat,
+      navigationActive,
+    }
+  );
 
   const isNodeOnCurrentFloor = (nodeId: string) => {
     if (currentFloor === "floor3") {
@@ -122,14 +168,20 @@ const Index = () => {
     const startMap = currentMapBuildings[selectedBuilding].floors[currentFloor];
     const targetMap = currentMapBuildings[destBuilding].floors[destFloor];
     const poi = targetMap.pois.find((p: any) => p.id === destinationId)!;
-    // @ts-ignore
     const endNode = targetMap.nodes.find((n: Node) => n.id === poi.node)!;
     const startNode = findNearestNode(location, startMap.nodes);
 
+    // Create virtual start node at exact click location
+    const userStartNode: Node = {
+      id: "user-temp-start",
+      x: location.x,
+      y: location.y
+    };
+
     // 🟢 Same building + same floor
     if (selectedBuilding === destBuilding && currentFloor === destFloor) {
-      const path = findPath(startNode, endNode, startMap.nodes, startMap.edges);
-      setFullPath(path);
+      const pathNodes = findPath(startNode, endNode, startMap.nodes, startMap.edges);
+      setFullPath([userStartNode, ...pathNodes]); // Prepend user click
       setDestinationNode(endNode);
       setActiveFloors([currentFloor]);
       setPendingBuildingTransition(null);
@@ -143,7 +195,6 @@ const Index = () => {
       let finalActiveFloors: string[] = [];
 
       if (selectedBuilding === "buildingA") {
-        // ✅ --- UPGRADED BUILDING A LOGIC --- ✅
         const mapF1 = currentMapBuildings.buildingA.floors.floor1;
         const mapF2 = currentMapBuildings.buildingA.floors.floor2;
         const f1Stairs = ["N_Stairs_1", "N_Stairs_2"];
@@ -156,7 +207,7 @@ const Index = () => {
           const result = findNearestStairPair(startNode, f1Stairs, f2Stairs, mapF1, mapF2);
           exitNode = result.exitNode;
           entryNode = result.entryNode;
-        } else if (currentFloor === "floor2" && destFloor === "floor1") {
+        } else {
           const result = findNearestStairPair(startNode, f2Stairs, f1Stairs, mapF2, mapF1);
           exitNode = result.exitNode;
           entryNode = result.entryNode;
@@ -167,76 +218,48 @@ const Index = () => {
         segments.push(...findPath(startNode, exitNode, startMap.nodes, startMap.edges));
         segments.push(...findPath(entryNode, endNode, targetMap.nodes, targetMap.edges));
         finalActiveFloors = ["floor1", "floor2"];
-
       } else {
-        // Building B (1, 2, or 3 floors)
         const f1Stairs = ["B_N_Stairs_1", "B_N_Stairs_2"];
         const f2Stairs = ["B_f2_N_Stairs_1", "B_f2_N_Stairs_2"];
         const f3Stairs = ["B_f3_N_Stairs_1", "B_f3_N_Stairs_2"];
-        
         const mapF1 = currentMapBuildings.buildingB.floors.floor1;
         const mapF2 = currentMapBuildings.buildingB.floors.floor2;
         const mapF3 = currentMapBuildings.buildingB.floors.floor3;
 
-        // F1 -> F2
         if (currentFloor === "floor1" && destFloor === "floor2") {
           const { exitNode, entryNode } = findNearestStairPair(startNode, f1Stairs, f2Stairs, mapF1, mapF2);
-          if (!exitNode || !entryNode) { toast.error("Stair node error F1-F2"); return; }
           segments.push(...findPath(startNode, exitNode, mapF1.nodes, mapF1.edges));
           segments.push(...findPath(entryNode, endNode, mapF2.nodes, mapF2.edges));
           finalActiveFloors = ["floor1", "floor2"];
-        }
-        // F2 -> F1
-        else if (currentFloor === "floor2" && destFloor === "floor1") {
+        } else if (currentFloor === "floor2" && destFloor === "floor1") {
           const { exitNode, entryNode } = findNearestStairPair(startNode, f2Stairs, f1Stairs, mapF2, mapF1);
-          if (!exitNode || !entryNode) { toast.error("Stair node error F2-F1"); return; }
           segments.push(...findPath(startNode, exitNode, mapF2.nodes, mapF2.edges));
           segments.push(...findPath(entryNode, endNode, mapF1.nodes, mapF1.edges));
           finalActiveFloors = ["floor1", "floor2"];
-        }
-        // F2 -> F3
-        else if (currentFloor === "floor2" && destFloor === "floor3") {
+        } else if (currentFloor === "floor2" && destFloor === "floor3") {
           const { exitNode, entryNode } = findNearestStairPair(startNode, f2Stairs, f3Stairs, mapF2, mapF3);
-          if (!exitNode || !entryNode) { toast.error("Stair node error F2-F3"); return; }
           segments.push(...findPath(startNode, exitNode, mapF2.nodes, mapF2.edges));
           segments.push(...findPath(entryNode, endNode, mapF3.nodes, mapF3.edges));
           finalActiveFloors = ["floor2", "floor3"];
-        }
-        // F3 -> F2
-        else if (currentFloor === "floor3" && destFloor === "floor2") {
+        } else if (currentFloor === "floor3" && destFloor === "floor2") {
           const { exitNode, entryNode } = findNearestStairPair(startNode, f3Stairs, f2Stairs, mapF3, mapF2);
-          if (!exitNode || !entryNode) { toast.error("Stair node error F3-F2"); return; }
           segments.push(...findPath(startNode, exitNode, mapF3.nodes, mapF3.edges));
           segments.push(...findPath(entryNode, endNode, mapF2.nodes, mapF2.edges));
           finalActiveFloors = ["floor2", "floor3"];
-        }
-        // F1 -> F3 (2-hop)
-        else if (currentFloor === "floor1" && destFloor === "floor3") {
-          const { exitNode: exitF1, entryNode: entryF2 } = findNearestStairPair(startNode, f1Stairs, f2Stairs, mapF1, mapF2);
-          if (!exitF1 || !entryF2) { toast.error("Stair node error F1-F3 (Hop 1)"); return; }
-          const { exitNode: exitF2, entryNode: entryF3 } = findNearestStairPair(entryF2, f2Stairs, f3Stairs, mapF2, mapF3);
-          if (!exitF2 || !entryF3) { toast.error("Stair node error F1-F3 (Hop 2)"); return; }
-          
-          segments.push(...findPath(startNode, exitF1, mapF1.nodes, mapF1.edges));
-          segments.push(...findPath(entryF2, exitF2, mapF2.nodes, mapF2.edges));
-          segments.push(...findPath(entryF3, endNode, mapF3.nodes, mapF3.edges));
+        } else if (currentFloor === "floor1" && destFloor === "floor3") {
+          const { exitNode: ex1, entryNode: en2 } = findNearestStairPair(startNode, f1Stairs, f2Stairs, mapF1, mapF2);
+          const { exitNode: ex2, entryNode: en3 } = findNearestStairPair(en2!, f2Stairs, f3Stairs, mapF2, mapF3);
+          segments.push(...findPath(startNode, ex1!, mapF1.nodes, mapF1.edges), ...findPath(en2!, ex2!, mapF2.nodes, mapF2.edges), ...findPath(en3!, endNode, mapF3.nodes, mapF3.edges));
           finalActiveFloors = ["floor1", "floor2", "floor3"];
-        }
-        // F3 -> F1 (2-hop)
-        else if (currentFloor === "floor3" && destFloor === "floor1") {
-          const { exitNode: exitF3, entryNode: entryF2 } = findNearestStairPair(startNode, f3Stairs, f2Stairs, mapF3, mapF2);
-          if (!exitF3 || !entryF2) { toast.error("Stair node error F3-F1 (Hop 1)"); return; }
-          const { exitNode: exitF2, entryNode: entryF1 } = findNearestStairPair(entryF2, f2Stairs, f1Stairs, mapF2, mapF1);
-          if (!exitF2 || !entryF1) { toast.error("Stair node error F3-F1 (Hop 2)"); return; }
-
-          segments.push(...findPath(startNode, exitF3, mapF3.nodes, mapF3.edges));
-          segments.push(...findPath(entryF2, exitF2, mapF2.nodes, mapF2.edges));
-          segments.push(...findPath(entryF1, endNode, mapF1.nodes, mapF1.edges));
+        } else if (currentFloor === "floor3" && destFloor === "floor1") {
+          const { exitNode: ex3, entryNode: en2 } = findNearestStairPair(startNode, f3Stairs, f2Stairs, mapF3, mapF2);
+          const { exitNode: ex2, entryNode: en1 } = findNearestStairPair(en2!, f2Stairs, f1Stairs, mapF2, mapF1);
+          segments.push(...findPath(startNode, ex3!, mapF3.nodes, mapF3.edges), ...findPath(en2!, ex2!, mapF2.nodes, mapF2.edges), ...findPath(en1!, endNode, mapF1.nodes, mapF1.edges));
           finalActiveFloors = ["floor1", "floor2", "floor3"];
         }
       }
 
-      setFullPath(segments);
+      setFullPath([userStartNode, ...segments]); // Prepend user click
       setDestinationNode(endNode);
       setActiveFloors(finalActiveFloors);
       setPendingBuildingTransition(null);
@@ -249,67 +272,44 @@ const Index = () => {
     let sourceExitNodeId: string;
     let finalActiveFloors: string[] = [];
     
-    // Building B stairs
     const b_f1Stairs = ["B_N_Stairs_1", "B_N_Stairs_2"];
     const b_f2Stairs = ["B_f2_N_Stairs_1", "B_f2_N_Stairs_2"];
     const b_f3Stairs = ["B_f3_N_Stairs_1", "B_f3_N_Stairs_2"];
-    // Building A stairs
     const a_f1Stairs = ["N_Stairs_1", "N_Stairs_2"];
     const a_f2Stairs = ["f2_N_Stairs_1", "f2_N_Stairs_2"];
-
 
     if (currentFloor === "floor1") {
       sourceExitNodeId = selectedBuilding === "buildingA" ? "N_Start" : "B_J_1";
       const entranceF1 = startMap.nodes.find((n: Node) => n.id === sourceExitNodeId);
-      if (!entranceF1) { toast.error("Entrance node not found"); return; }
-      combined.push(...findPath(startNode, entranceF1, startMap.nodes, startMap.edges));
+      combined.push(...findPath(startNode, entranceF1!, startMap.nodes, startMap.edges));
       finalActiveFloors = ["floor1"];
     } else if (currentFloor === "floor2") {
-      // F2 -> F1 -> Exit
       const mapF2 = currentMapBuildings[selectedBuilding].floors.floor2;
       const mapF1 = currentMapBuildings[selectedBuilding].floors.floor1;
-      const startNodeF2 = findNearestNode(location, mapF2.nodes);
-      
-      const { exitNode: exitF2, entryNode: entryF1 } = (selectedBuilding === "buildingA")
-        ? findNearestStairPair(startNodeF2, a_f2Stairs, a_f1Stairs, mapF2, mapF1)
-        : findNearestStairPair(startNodeF2, b_f2Stairs, b_f1Stairs, mapF2, mapF1);
-        
-      if (!exitF2 || !entryF1) { toast.error("Cross-building stair error F2-F1"); return; }
+      const { exitNode: ex2, entryNode: en1 } = (selectedBuilding === "buildingA")
+        ? findNearestStairPair(startNode, a_f2Stairs, a_f1Stairs, mapF2, mapF1)
+        : findNearestStairPair(startNode, b_f2Stairs, b_f1Stairs, mapF2, mapF1);
       
       sourceExitNodeId = selectedBuilding === "buildingA" ? "N_Start" : "B_J_1";
       const entranceF1 = mapF1.nodes.find((n: Node) => n.id === sourceExitNodeId);
-      if (!entranceF1) { toast.error("Entrance node not found"); return; }
-
-      combined.push(...findPath(startNodeF2, exitF2, mapF2.nodes, mapF2.edges));
-      combined.push(...findPath(entryF1, entranceF1, mapF1.nodes, mapF1.edges));
+      combined.push(...findPath(startNode, ex2!, mapF2.nodes, mapF2.edges));
+      combined.push(...findPath(en1!, entranceF1!, mapF1.nodes, mapF1.edges));
       finalActiveFloors = ["floor2", "floor1"];
     } else {
-      // F3 -> F2 -> F1 -> Exit (Only Building B has a Floor 3)
       const mapF3 = currentMapBuildings.buildingB.floors.floor3;
       const mapF2 = currentMapBuildings.buildingB.floors.floor2;
       const mapF1 = currentMapBuildings.buildingB.floors.floor1;
-      const startNodeF3 = findNearestNode(location, mapF3.nodes);
-
-      const { exitNode: exitF3, entryNode: entryF2 } = findNearestStairPair(startNodeF3, b_f3Stairs, b_f2Stairs, mapF3, mapF2);
-      if (!exitF3 || !entryF2) { toast.error("Cross-building stair error F3-F2"); return; }
-
-      const { exitNode: exitF2, entryNode: entryF1 } = findNearestStairPair(entryF2, b_f2Stairs, b_f1Stairs, mapF2, mapF1);
-      if (!exitF2 || !entryF1) { toast.error("Cross-building stair error F2-F1"); return; }
-
+      const { exitNode: ex3, entryNode: en2 } = findNearestStairPair(startNode, b_f3Stairs, b_f2Stairs, mapF3, mapF2);
+      const { exitNode: ex2, entryNode: en1 } = findNearestStairPair(en2!, b_f2Stairs, b_f1Stairs, mapF2, mapF1);
       sourceExitNodeId = "B_J_1";
       const entranceF1 = mapF1.nodes.find((n: Node) => n.id === sourceExitNodeId);
-      if (!entranceF1) { toast.error("Entrance node not found"); return; }
-
-      combined.push(...findPath(startNodeF3, exitF3, mapF3.nodes, mapF3.edges));
-      combined.push(...findPath(entryF2, exitF2, mapF2.nodes, mapF2.edges));
-      combined.push(...findPath(entryF1, entranceF1, mapF1.nodes, mapF1.edges));
+      combined.push(...findPath(startNode, ex3!, mapF3.nodes, mapF3.edges), ...findPath(en2!, ex2!, mapF2.nodes, mapF2.edges), ...findPath(en1!, entranceF1!, mapF1.nodes, mapF1.edges));
       finalActiveFloors = ["floor3", "floor2", "floor1"];
     }
 
-    const sourceExitNode =
-      currentMapBuildings[selectedBuilding].floors["floor1"].nodes.find((n: Node) => n.id === sourceExitNodeId)!;
+    const sourceExitNode = currentMapBuildings[selectedBuilding].floors["floor1"].nodes.find((n: Node) => n.id === sourceExitNodeId)!;
 
-    setFullPath(combined);
+    setFullPath([userStartNode, ...combined]); // Prepend user click
     setDestinationNode(sourceExitNode);
     setActiveFloors(finalActiveFloors);
     setPendingBuildingTransition({
@@ -319,7 +319,7 @@ const Index = () => {
       destinationNodeId: endNode.id,
     });
 
-    toast.info("Head to the exit", { description: "Tap ‘Go to Campus View’ when you reach the entrance." });
+    toast.info("Head to the exit");
   };
 
   const resetNavigation = () => {
@@ -473,7 +473,9 @@ const Index = () => {
     );
   }
   const floorPath = fullPath.filter((n) => isNodeOnCurrentFloor(n.id));
-  const displayedLocation = trackingState.currentPosition ?? currentLocation;
+  const displayedLocation = (liveTrackingEnabled && fullPath.length > 1) 
+    ? (trackingState.currentPosition ?? currentLocation) 
+    : currentLocation;
 
   return (
     <div className={`min-h-screen bg-background ${isFullscreen ? "" : "p-4 md:p-8"}`}>
@@ -531,7 +533,98 @@ const Index = () => {
             currentLocation={displayedLocation}
             destinationNode={destinationNode}
             onMapClick={handleMapClick}
+            buildings={currentMapBuildings}
+            headingDegrees={headingState.heading}
+            headingUpEnabled={ENABLE_EXPERIMENTAL_TRACKING && headingUpEnabled}
           />
+
+
+          {/* 🧭 Orient & Go — Alignment UI overlaid on map */}
+          {ENABLE_EXPERIMENTAL_TRACKING && liveTrackingEnabled && fullPath.length > 1 && (() => {
+
+            // ── Phone flat warning (overrides everything) ──────────────────
+            if (headingState.hasReading && !headingState.isFlat) {
+              return (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/90 border border-orange-400 text-white text-sm font-semibold shadow-lg backdrop-blur-sm">
+                    <AlertTriangle className="w-4 h-4" />
+                    Hold phone flat (screen up)
+                  </div>
+                </div>
+              );
+            }
+
+            // ── Waiting for first compass reading ─────────────────────────
+            if (!headingState.hasReading) {
+              return (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/90 border border-yellow-400 text-white text-xs font-semibold shadow backdrop-blur-sm">
+                    <AlertTriangle className="w-3.5 h-3.5 animate-pulse" />
+                    Waiting for compass…
+                  </div>
+                </div>
+              );
+            }
+
+            // ── NAVIGATING — step-driven, no compass ──────────────────────
+            if (navigationActive) {
+              return (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/90 border border-blue-400 text-white text-sm font-semibold shadow-lg backdrop-blur-sm">
+                    <Navigation className="w-4 h-4" />
+                    Navigating — {trackingState.remainingDistanceFt} ft left
+                  </div>
+                </div>
+              );
+            }
+
+            // ── PRE-NAVIGATION — alignment required ───────────────────────
+            const bearing = trackingState.requiredBearing;
+            const aligned = trackingState.isFacingCorrectDirection;
+            const currentDeg = Math.round(headingState.heading);
+            const requiredDeg = bearing !== null ? Math.round(bearing) : null;
+
+            return (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 w-72">
+
+                {/* Alignment status pill */}
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-lg border text-sm font-semibold backdrop-blur-sm transition-all duration-300 w-full justify-center ${
+                  aligned
+                    ? "bg-green-500/90 border-green-400 text-white"
+                    : "bg-red-500/90 border-red-400 text-white"
+                }`}>
+                  {aligned
+                    ? <><Navigation className="w-4 h-4" /> Aligned! Ready to start</>
+                    : <><AlertTriangle className="w-4 h-4 animate-pulse" /> Turn to face path</>
+                  }
+                </div>
+
+                {/* Bearing debug info */}
+                {requiredDeg !== null && (
+                  <div className="flex items-center gap-3 bg-black/60 text-white text-xs px-4 py-1.5 rounded-full backdrop-blur-sm w-full justify-center">
+                    <span>You: <b>{currentDeg}°</b></span>
+                    <span className="opacity-40">|</span>
+                    <span>Need: <b>{requiredDeg}°</b></span>
+                  </div>
+                )}
+
+                {/* Start Navigation button — only active when aligned */}
+                <button
+                  disabled={!aligned}
+                  onClick={() => setNavigationActive(true)}
+                  className={`w-full py-3 rounded-full text-sm font-bold shadow-lg border transition-all duration-300 ${
+                    aligned
+                      ? "bg-green-600 hover:bg-green-700 border-green-500 text-white cursor-pointer"
+                      : "bg-gray-400/80 border-gray-400 text-white/60 cursor-not-allowed"
+                  }`}
+                >
+                  {aligned ? "▶ Start Navigation" : "Align first to start"}
+                </button>
+
+              </div>
+            );
+          })()}
+
 
           {/* 🧭 Floor-change popup */}
           {fullPath.length > 0 &&
@@ -616,13 +709,38 @@ const Index = () => {
                     {popupText}
                   </p>
                   <div className="flex gap-2">
-                    <Button
-                      onClick={() => setCurrentFloor(nextFloor!)}
-                      className="flex items-center gap-2"
-                    >
-                      <ArrowRightCircle className="w-4 h-4" />
-                      Change Floor
-                    </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      // 1. Determine which floor we are going to
+                      const targetFloor = nextFloor!;
+
+                      // 2. Find the index of the FIRST node on that specific floor in our path
+                      const entryNodeIdx = fullPath.findIndex(n => {
+                        if (targetFloor === "floor1") return !n.id.startsWith("f2_") && !n.id.startsWith("B_f2_") && !n.id.startsWith("B_f3_");
+                        if (targetFloor === "floor2") return n.id.startsWith("f2_") || n.id.startsWith("B_f2_");
+                        if (targetFloor === "floor3") return n.id.startsWith("B_f3_");
+                        return false;
+                      });
+
+                      if (entryNodeIdx !== -1) {
+                        // 3. Slice the path so it starts exactly at the transition node
+                        const newSliccedPath = fullPath.slice(entryNodeIdx);
+                        setFullPath(newSliccedPath);
+                        
+                        // 4. Snap the user marker to the stair node on the new map
+                        setCurrentLocation({ x: newSliccedPath[0].x, y: newSliccedPath[0].y });
+                      }
+
+                      // 5. Switch the map view and force re-alignment
+                      setCurrentFloor(targetFloor);
+                      setNavigationActive(false); 
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowRightCircle className="w-4 h-4" />
+                    Change Floor
+                  </Button>
                     <Button variant="outline" onClick={() => toast.info("Floor change canceled")}>
                       Cancel
                     </Button>
@@ -662,12 +780,18 @@ const Index = () => {
             etaMinutes={trackingState.etaMinutes}
             trackingEnabled={liveTrackingEnabled}
             onTrackingChange={setLiveTrackingEnabled}
+            headingUpEnabled={headingUpEnabled}
+            onHeadingUpChange={setHeadingUpEnabled}
+            experimentalEnabled={ENABLE_EXPERIMENTAL_TRACKING}
+            stepCount={trackingState.stepCount}
+            isFacingCorrectDirection={trackingState.isFacingCorrectDirection}
           />
         )}
 
         {/* Destination selector */}
         {!isFullscreen && currentMap && (
           <DestinationSelector
+            buildings={currentMapBuildings}
             selectedFloor={currentFloor}
             selectedDestination={selectedDestination}
             onDestinationChange={(id) => {

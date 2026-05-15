@@ -1,0 +1,2855 @@
+{
+  "generatedAt": "2026-05-03T13:51:38.819Z",
+  "maps": [
+    {
+      "mapId": "gmch-chhatrapati",
+      "mapName": "GMCH Chhatrapati Sambhajinagar",
+      "buildings": [
+        {
+          "key": "buildingA",
+          "name": "OPD",
+          "floors": [
+            {
+              "code": "floor1",
+              "name": "Ground Floor - Building A",
+              "level": 1,
+              "width": 700,
+              "height": 800,
+              "nodes": [
+                {
+                  "id": "A_J_1",
+                  "x": 259,
+                  "y": 369
+                },
+                {
+                  "id": "A_J_2",
+                  "x": 280,
+                  "y": 383
+                },
+                {
+                  "id": "A_J_3",
+                  "x": 294,
+                  "y": 408
+                },
+                {
+                  "id": "A_J_4",
+                  "x": 307,
+                  "y": 407
+                },
+                {
+                  "id": "A_J_5",
+                  "x": 265,
+                  "y": 449
+                },
+                {
+                  "id": "A_J_6",
+                  "x": 252,
+                  "y": 472
+                },
+                {
+                  "id": "A_J_7",
+                  "x": 344,
+                  "y": 405
+                },
+                {
+                  "id": "A_J_8",
+                  "x": 388,
+                  "y": 395
+                },
+                {
+                  "id": "A_J_9",
+                  "x": 435,
+                  "y": 397
+                },
+                {
+                  "id": "A_J_10",
+                  "x": 460,
+                  "y": 432
+                },
+                {
+                  "id": "A_J_11",
+                  "x": 486,
+                  "y": 476
+                },
+                {
+                  "id": "A_J_12",
+                  "x": 472,
+                  "y": 508
+                },
+                {
+                  "id": "A_J_13",
+                  "x": 389,
+                  "y": 340
+                },
+                {
+                  "id": "A_J_14",
+                  "x": 388,
+                  "y": 298
+                },
+                {
+                  "id": "A_J_15",
+                  "x": 411,
+                  "y": 287
+                },
+                {
+                  "id": "A_J_16",
+                  "x": 443,
+                  "y": 288
+                },
+                {
+                  "id": "A_J_17",
+                  "x": 455,
+                  "y": 274
+                },
+                {
+                  "id": "A_J_18",
+                  "x": 467,
+                  "y": 251
+                },
+                {
+                  "id": "A_J_19",
+                  "x": 373,
+                  "y": 298
+                },
+                {
+                  "id": "A_J_20",
+                  "x": 375,
+                  "y": 221
+                },
+                {
+                  "id": "A_J_21",
+                  "x": 336,
+                  "y": 290
+                },
+                {
+                  "id": "A_J_22",
+                  "x": 313,
+                  "y": 290
+                },
+                {
+                  "id": "A_J_23",
+                  "x": 271,
+                  "y": 294
+                },
+                {
+                  "id": "A_J_24",
+                  "x": 291,
+                  "y": 334
+                },
+                {
+                  "id": "N_Start",
+                  "x": 231,
+                  "y": 331
+                },
+                {
+                  "id": "A_N_ortho",
+                  "x": 252,
+                  "y": 441
+                },
+                {
+                  "id": "A_N_physio",
+                  "x": 294,
+                  "y": 526
+                },
+                {
+                  "id": "A_N_obgy",
+                  "x": 348,
+                  "y": 430
+                },
+                {
+                  "id": "A_N_surgery",
+                  "x": 452,
+                  "y": 442
+                },
+                {
+                  "id": "A_N_dispensory",
+                  "x": 409,
+                  "y": 340
+                },
+                {
+                  "id": "A_N_rmo",
+                  "x": 441,
+                  "y": 267
+                },
+                {
+                  "id": "A_N_radio",
+                  "x": 453,
+                  "y": 240
+                },
+                {
+                  "id": "A_N_gynac",
+                  "x": 484,
+                  "y": 229
+                },
+                {
+                  "id": "A_N_opthalmic",
+                  "x": 364,
+                  "y": 217
+                },
+                {
+                  "id": "A_N_ms_office",
+                  "x": 262,
+                  "y": 271
+                },
+                {
+                  "id": "A_N_minor_ot",
+                  "x": 465,
+                  "y": 545
+                },
+                {
+                  "id": "A_N_phsycat",
+                  "x": 492,
+                  "y": 545
+                },
+                {
+                  "id": "A_N_reg",
+                  "x": 268,
+                  "y": 330
+                },
+                {
+                  "id": "N_Stairs_1",
+                  "x": 315,
+                  "y": 274
+                },
+                {
+                  "id": "N_Stairs_2",
+                  "x": 307,
+                  "y": 428
+                }
+              ],
+              "edges": [
+                {
+                  "from": "N_Start",
+                  "to": "A_J_24",
+                  "weight": 10
+                },
+                {
+                  "from": "N_Start",
+                  "to": "A_J_1",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_1",
+                  "to": "A_J_2",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_2",
+                  "to": "A_J_3",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_3",
+                  "to": "A_J_4",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_4",
+                  "to": "A_J_5",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_5",
+                  "to": "A_J_6",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_4",
+                  "to": "A_J_7",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_7",
+                  "to": "A_J_8",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_8",
+                  "to": "A_J_9",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_9",
+                  "to": "A_J_10",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_10",
+                  "to": "A_J_11",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_11",
+                  "to": "A_J_12",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_13",
+                  "to": "A_J_14",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_14",
+                  "to": "A_J_15",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_15",
+                  "to": "A_J_16",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_16",
+                  "to": "A_J_17",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_17",
+                  "to": "A_J_18",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_14",
+                  "to": "A_J_19",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_19",
+                  "to": "A_J_20",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_19",
+                  "to": "A_J_21",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_21",
+                  "to": "A_J_22",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_22",
+                  "to": "A_J_23",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_23",
+                  "to": "A_J_24",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_13",
+                  "to": "A_J_8",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_24",
+                  "to": "A_N_reg",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_5",
+                  "to": "A_N_ortho",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_6",
+                  "to": "A_N_physio",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_4",
+                  "to": "A_N_obgy",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_10",
+                  "to": "A_N_surgery",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_13",
+                  "to": "A_N_dispensory",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_16",
+                  "to": "A_N_rmo",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_17",
+                  "to": "A_N_radio",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_18",
+                  "to": "A_N_gynac",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_20",
+                  "to": "A_N_opthalmic",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_23",
+                  "to": "A_N_ms_office",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_12",
+                  "to": "A_N_minor_ot",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_12",
+                  "to": "A_N_phsycat",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_22",
+                  "to": "N_Stairs_1",
+                  "weight": 10
+                },
+                {
+                  "from": "A_J_4",
+                  "to": "N_Stairs_2",
+                  "weight": 10
+                }
+              ],
+              "pois": [
+                {
+                  "id": "A_p_start",
+                  "name": "Main Entrance",
+                  "node": "N_Start",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "A_p_reg",
+                  "name": "Registration",
+                  "node": "A_N_reg",
+                  "icon": "archive"
+                },
+                {
+                  "id": "A_p_ortho",
+                  "name": "Ortho OPD",
+                  "node": "A_N_ortho",
+                  "icon": "bed"
+                },
+                {
+                  "id": "A_p_physio",
+                  "name": "Physio OPD",
+                  "node": "A_N_physio",
+                  "icon": "activity"
+                },
+                {
+                  "id": "A_p_obgy",
+                  "name": "OBGY OPD",
+                  "node": "A_N_obgy",
+                  "icon": "bed"
+                },
+                {
+                  "id": "A_p_surgery",
+                  "name": "Surgery",
+                  "node": "A_N_surgery",
+                  "icon": "syringe"
+                },
+                {
+                  "id": "A_p_dispensory",
+                  "name": "OPD Dispensory",
+                  "node": "A_N_dispensory",
+                  "icon": "pill"
+                },
+                {
+                  "id": "A_p_rmo",
+                  "name": "RMO Office",
+                  "node": "A_N_rmo",
+                  "icon": "info"
+                },
+                {
+                  "id": "A_p_radio",
+                  "name": "Radio OPD",
+                  "node": "A_N_radio",
+                  "icon": "info"
+                },
+                {
+                  "id": "A_p_gynac",
+                  "name": "Gynac OPD",
+                  "node": "A_N_gynac",
+                  "icon": "bed"
+                },
+                {
+                  "id": "A_p_opthalmic",
+                  "name": "Opthalmic OPD",
+                  "node": "A_N_opthalmic",
+                  "icon": "eye"
+                },
+                {
+                  "id": "A_p_ms_office",
+                  "name": "MS Office",
+                  "node": "A_N_ms_office",
+                  "icon": "archive"
+                },
+                {
+                  "id": "A_p_stairs_1",
+                  "name": "Stairs 1",
+                  "node": "N_Stairs_1",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "A_p_stairs_2",
+                  "name": "Stairs 2",
+                  "node": "N_Stairs_2",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "A_p_minor_ot",
+                  "name": "Minor OT",
+                  "node": "A_N_minor_ot",
+                  "icon": "syringe"
+                },
+                {
+                  "id": "A_p_phsycat",
+                  "name": "Phsycat (Dressing)",
+                  "node": "A_N_phsycat",
+                  "icon": "info"
+                }
+              ]
+            },
+            {
+              "code": "floor2",
+              "name": "Building A - Floor 2",
+              "level": 2,
+              "width": 700,
+              "height": 800,
+              "nodes": [
+                {
+                  "id": "f2_J_1",
+                  "x": 263,
+                  "y": 353
+                },
+                {
+                  "id": "f2_J_2",
+                  "x": 275,
+                  "y": 386
+                },
+                {
+                  "id": "f2_J_3",
+                  "x": 294,
+                  "y": 408
+                },
+                {
+                  "id": "f2_J_4",
+                  "x": 310,
+                  "y": 412
+                },
+                {
+                  "id": "f2_J_5",
+                  "x": 265,
+                  "y": 449
+                },
+                {
+                  "id": "f2_J_6",
+                  "x": 252,
+                  "y": 474
+                },
+                {
+                  "id": "f2_J_7",
+                  "x": 346,
+                  "y": 405
+                },
+                {
+                  "id": "f2_J_8",
+                  "x": 388,
+                  "y": 395
+                },
+                {
+                  "id": "f2_J_9",
+                  "x": 431,
+                  "y": 400
+                },
+                {
+                  "id": "f2_J_10",
+                  "x": 460,
+                  "y": 432
+                },
+                {
+                  "id": "f2_J_11",
+                  "x": 389,
+                  "y": 340
+                },
+                {
+                  "id": "f2_J_12",
+                  "x": 388,
+                  "y": 298
+                },
+                {
+                  "id": "f2_J_13",
+                  "x": 411,
+                  "y": 287
+                },
+                {
+                  "id": "f2_J_14",
+                  "x": 443,
+                  "y": 288
+                },
+                {
+                  "id": "f2_J_15",
+                  "x": 455,
+                  "y": 274
+                },
+                {
+                  "id": "f2_J_16",
+                  "x": 467,
+                  "y": 251
+                },
+                {
+                  "id": "f2_J_17",
+                  "x": 373,
+                  "y": 298
+                },
+                {
+                  "id": "f2_J_18",
+                  "x": 378,
+                  "y": 224
+                },
+                {
+                  "id": "f2_J_19",
+                  "x": 336,
+                  "y": 290
+                },
+                {
+                  "id": "f2_J_20",
+                  "x": 313,
+                  "y": 290
+                },
+                {
+                  "id": "f2_J_21",
+                  "x": 286,
+                  "y": 291
+                },
+                {
+                  "id": "f2_J_22",
+                  "x": 266,
+                  "y": 312
+                },
+                {
+                  "id": "f2_J_23",
+                  "x": 255,
+                  "y": 239
+                },
+                {
+                  "id": "f2_J_24",
+                  "x": 278,
+                  "y": 188
+                },
+                {
+                  "id": "f2_J_25",
+                  "x": 269,
+                  "y": 496
+                },
+                {
+                  "id": "f2_N_ortho",
+                  "x": 252,
+                  "y": 441
+                },
+                {
+                  "id": "f2_N_physio",
+                  "x": 294,
+                  "y": 526
+                },
+                {
+                  "id": "f2_N_ent",
+                  "x": 348,
+                  "y": 430
+                },
+                {
+                  "id": "f2_N_pediatrics",
+                  "x": 452,
+                  "y": 442
+                },
+                {
+                  "id": "f2_N_geriatrics",
+                  "x": 411,
+                  "y": 367
+                },
+                {
+                  "id": "f2_N_med129",
+                  "x": 441,
+                  "y": 267
+                },
+                {
+                  "id": "f2_N_med130",
+                  "x": 453,
+                  "y": 240
+                },
+                {
+                  "id": "f2_N_med131",
+                  "x": 484,
+                  "y": 229
+                },
+                {
+                  "id": "f2_N_lab",
+                  "x": 364,
+                  "y": 217
+                },
+                {
+                  "id": "f2_N_immun",
+                  "x": 249,
+                  "y": 224
+                },
+                {
+                  "id": "f2_N_lap_lab",
+                  "x": 244,
+                  "y": 298
+                },
+                {
+                  "id": "f2_N_tb_lab",
+                  "x": 246,
+                  "y": 355
+                },
+                {
+                  "id": "f2_N_art",
+                  "x": 411,
+                  "y": 317
+                },
+                {
+                  "id": "f2_N_skin",
+                  "x": 298,
+                  "y": 173
+                },
+                {
+                  "id": "f2_N_Stairs_1",
+                  "x": 315,
+                  "y": 274
+                },
+                {
+                  "id": "f2_N_Stairs_2",
+                  "x": 307,
+                  "y": 428
+                }
+              ],
+              "edges": [
+                {
+                  "from": "f2_J_1",
+                  "to": "f2_J_2",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_2",
+                  "to": "f2_J_3",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_3",
+                  "to": "f2_J_4",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_3",
+                  "to": "f2_J_5",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_5",
+                  "to": "f2_J_6",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_6",
+                  "to": "f2_J_25",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_4",
+                  "to": "f2_J_7",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_7",
+                  "to": "f2_J_8",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_8",
+                  "to": "f2_J_9",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_9",
+                  "to": "f2_J_10",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_8",
+                  "to": "f2_J_11",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_11",
+                  "to": "f2_J_12",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_12",
+                  "to": "f2_J_13",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_13",
+                  "to": "f2_J_14",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_14",
+                  "to": "f2_J_15",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_15",
+                  "to": "f2_J_16",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_12",
+                  "to": "f2_J_17",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_17",
+                  "to": "f2_J_18",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_17",
+                  "to": "f2_J_19",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_19",
+                  "to": "f2_J_20",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_20",
+                  "to": "f2_J_21",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_21",
+                  "to": "f2_J_22",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_22",
+                  "to": "f2_J_1",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_21",
+                  "to": "f2_J_23",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_23",
+                  "to": "f2_J_24",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_5",
+                  "to": "f2_N_ortho",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_25",
+                  "to": "f2_N_physio",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_7",
+                  "to": "f2_N_ent",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_10",
+                  "to": "f2_N_pediatrics",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_11",
+                  "to": "f2_N_geriatrics",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_15",
+                  "to": "f2_N_med129",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_16",
+                  "to": "f2_N_med130",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_16",
+                  "to": "f2_N_med131",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_18",
+                  "to": "f2_N_lab",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_23",
+                  "to": "f2_N_immun",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_22",
+                  "to": "f2_N_lap_lab",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_1",
+                  "to": "f2_N_tb_lab",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_12",
+                  "to": "f2_N_art",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_24",
+                  "to": "f2_N_skin",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_20",
+                  "to": "f2_N_Stairs_1",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_J_4",
+                  "to": "f2_N_Stairs_2",
+                  "weight": 10
+                }
+              ],
+              "pois": [
+                {
+                  "id": "f2_p_ortho",
+                  "name": "Ortho OPD",
+                  "node": "f2_N_ortho",
+                  "icon": "bed"
+                },
+                {
+                  "id": "f2_p_physio",
+                  "name": "Physiotherapy OPD",
+                  "node": "f2_N_physio",
+                  "icon": "activity"
+                },
+                {
+                  "id": "f2_p_ent",
+                  "name": "ENT OPD",
+                  "node": "f2_N_ent",
+                  "icon": "bed"
+                },
+                {
+                  "id": "f2_p_pediatrics",
+                  "name": "Pediatrics",
+                  "node": "f2_N_pediatrics",
+                  "icon": "bed"
+                },
+                {
+                  "id": "f2_p_geriatrics",
+                  "name": "Geriatrics",
+                  "node": "f2_N_geriatrics",
+                  "icon": "info"
+                },
+                {
+                  "id": "f2_p_med129",
+                  "name": "Medicine 129",
+                  "node": "f2_N_med129",
+                  "icon": "bed"
+                },
+                {
+                  "id": "f2_p_med130",
+                  "name": "Medicine 130",
+                  "node": "f2_N_med130",
+                  "icon": "bed"
+                },
+                {
+                  "id": "f2_p_med131",
+                  "name": "Medicine 131",
+                  "node": "f2_N_med131",
+                  "icon": "bed"
+                },
+                {
+                  "id": "f2_p_lab",
+                  "name": "Laboratory OPD",
+                  "node": "f2_N_lab",
+                  "icon": "droplet"
+                },
+                {
+                  "id": "f2_p_immun",
+                  "name": "Immunization",
+                  "node": "f2_N_immun",
+                  "icon": "syringe"
+                },
+                {
+                  "id": "f2_p_lap_lab",
+                  "name": "Laparoscopy Lab",
+                  "node": "f2_N_lap_lab",
+                  "icon": "droplet"
+                },
+                {
+                  "id": "f2_p_tb_lab",
+                  "name": "TB Lab",
+                  "node": "f2_N_tb_lab",
+                  "icon": "droplet"
+                },
+                {
+                  "id": "f2_p_art",
+                  "name": "ART Center",
+                  "node": "f2_N_art",
+                  "icon": "heart-pulse"
+                },
+                {
+                  "id": "f2_p_skin",
+                  "name": "Skin",
+                  "node": "f2_N_skin",
+                  "icon": "info"
+                },
+                {
+                  "id": "f2_p_stairs_1",
+                  "name": "Stairs 1 (to F1)",
+                  "node": "f2_N_Stairs_1",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "f2_p_stairs_2",
+                  "name": "Stairs 2 (to F1)",
+                  "node": "f2_N_Stairs_2",
+                  "icon": "door-open"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "buildingB",
+          "name": "Casualty",
+          "floors": [
+            {
+              "code": "floor1",
+              "name": "Ground Floor - Building B (Hospital Layout)",
+              "level": 1,
+              "width": 1200,
+              "height": 600,
+              "nodes": [
+                {
+                  "id": "B_J_1",
+                  "x": 215,
+                  "y": 278
+                },
+                {
+                  "id": "B_J_2",
+                  "x": 282,
+                  "y": 282
+                },
+                {
+                  "id": "B_J_3",
+                  "x": 433,
+                  "y": 281
+                },
+                {
+                  "id": "B_J_4",
+                  "x": 498,
+                  "y": 281
+                },
+                {
+                  "id": "B_J_5",
+                  "x": 568,
+                  "y": 281
+                },
+                {
+                  "id": "B_J_6",
+                  "x": 705,
+                  "y": 281
+                },
+                {
+                  "id": "B_J_7",
+                  "x": 777,
+                  "y": 286
+                },
+                {
+                  "id": "B_J_8",
+                  "x": 846,
+                  "y": 285
+                },
+                {
+                  "id": "B_J_9",
+                  "x": 947,
+                  "y": 292
+                },
+                {
+                  "id": "B_N_med_cas",
+                  "x": 228,
+                  "y": 251
+                },
+                {
+                  "id": "B_N_blood_bank",
+                  "x": 228,
+                  "y": 314
+                },
+                {
+                  "id": "B_N_cas_1",
+                  "x": 280,
+                  "y": 262
+                },
+                {
+                  "id": "B_N_cas_2",
+                  "x": 280,
+                  "y": 299
+                },
+                {
+                  "id": "B_N_xray",
+                  "x": 430,
+                  "y": 247
+                },
+                {
+                  "id": "B_N_radio",
+                  "x": 432,
+                  "y": 301
+                },
+                {
+                  "id": "B_N_Stairs_1",
+                  "x": 495,
+                  "y": 263
+                },
+                {
+                  "id": "B_N_ot1",
+                  "x": 572,
+                  "y": 245
+                },
+                {
+                  "id": "B_N_closed",
+                  "x": 570,
+                  "y": 335
+                },
+                {
+                  "id": "B_N_ortho",
+                  "x": 714,
+                  "y": 230
+                },
+                {
+                  "id": "B_N_gynac",
+                  "x": 705,
+                  "y": 371
+                },
+                {
+                  "id": "B_N_Stairs_2",
+                  "x": 775,
+                  "y": 263
+                },
+                {
+                  "id": "B_N_linen",
+                  "x": 848,
+                  "y": 247
+                },
+                {
+                  "id": "B_N_ent",
+                  "x": 842,
+                  "y": 345
+                },
+                {
+                  "id": "B_N_op_15",
+                  "x": 948,
+                  "y": 273
+                },
+                {
+                  "id": "B_N_op_16",
+                  "x": 948,
+                  "y": 328
+                }
+              ],
+              "edges": [
+                {
+                  "from": "B_J_1",
+                  "to": "B_J_2",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_2",
+                  "to": "B_J_3",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_3",
+                  "to": "B_J_4",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_4",
+                  "to": "B_J_5",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_5",
+                  "to": "B_J_6",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_6",
+                  "to": "B_J_7",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_7",
+                  "to": "B_J_8",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_8",
+                  "to": "B_J_9",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_1",
+                  "to": "B_N_med_cas",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_1",
+                  "to": "B_N_blood_bank",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_2",
+                  "to": "B_N_cas_1",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_2",
+                  "to": "B_N_cas_2",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_3",
+                  "to": "B_N_xray",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_3",
+                  "to": "B_N_radio",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_4",
+                  "to": "B_N_Stairs_1",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_5",
+                  "to": "B_N_ot1",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_5",
+                  "to": "B_N_closed",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_6",
+                  "to": "B_N_ortho",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_6",
+                  "to": "B_N_gynac",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_7",
+                  "to": "B_N_Stairs_2",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_8",
+                  "to": "B_N_linen",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_8",
+                  "to": "B_N_ent",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_9",
+                  "to": "B_N_op_15",
+                  "weight": 10
+                },
+                {
+                  "from": "B_J_9",
+                  "to": "B_N_op_16",
+                  "weight": 10
+                }
+              ],
+              "pois": [
+                {
+                  "id": "B_p_entrance",
+                  "name": "Main Entrance",
+                  "node": "B_J_1",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "B_p_med_cas",
+                  "name": "Medicine Casualty",
+                  "node": "B_N_med_cas",
+                  "icon": "activity"
+                },
+                {
+                  "id": "B_p_blood_bank",
+                  "name": "Blood Bank",
+                  "node": "B_N_blood_bank",
+                  "icon": "droplet"
+                },
+                {
+                  "id": "B_p_cas_2",
+                  "name": "Casualty 2",
+                  "node": "B_N_cas_2",
+                  "icon": "heart-pulse"
+                },
+                {
+                  "id": "B_p_cas_1",
+                  "name": "Casualty 1",
+                  "node": "B_N_cas_1",
+                  "icon": "heart-pulse"
+                },
+                {
+                  "id": "B_p_xray",
+                  "name": "X-ray Room",
+                  "node": "B_N_xray",
+                  "icon": "info"
+                },
+                {
+                  "id": "B_p_radio",
+                  "name": "Radiology",
+                  "node": "B_N_radio",
+                  "icon": "info"
+                },
+                {
+                  "id": "B_p_stairs_1",
+                  "name": "Change Floor 1",
+                  "node": "B_N_Stairs_1",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "B_p_ot1",
+                  "name": "Operation Theatre 1",
+                  "node": "B_N_ot1",
+                  "icon": "syringe"
+                },
+                {
+                  "id": "B_p_closed",
+                  "name": "Maintenance",
+                  "node": "B_N_closed",
+                  "icon": "hammer"
+                },
+                {
+                  "id": "B_p_ortho",
+                  "name": "Ortho Ward 12",
+                  "node": "B_N_ortho",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_p_gynac",
+                  "name": "Gynac Ward 13",
+                  "node": "B_N_gynac",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_p_stairs_2",
+                  "name": "Change Floor 2",
+                  "node": "B_N_Stairs_2",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "B_p_linen",
+                  "name": "Linen Department",
+                  "node": "B_N_linen",
+                  "icon": "archive"
+                },
+                {
+                  "id": "B_p_ent",
+                  "name": "ENT Ward 14",
+                  "node": "B_N_ent",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_p_op_15",
+                  "name": "Opthalm 15",
+                  "node": "B_N_op_15",
+                  "icon": "eye"
+                },
+                {
+                  "id": "B_p_op_16",
+                  "name": "Opthalm 16",
+                  "node": "B_N_op_16",
+                  "icon": "eye"
+                }
+              ]
+            },
+            {
+              "code": "floor2",
+              "name": "Building B - Floor 2",
+              "level": 2,
+              "width": 1200,
+              "height": 600,
+              "nodes": [
+                {
+                  "id": "B_f2_J_2",
+                  "x": 282,
+                  "y": 282
+                },
+                {
+                  "id": "B_f2_J_3",
+                  "x": 433,
+                  "y": 281
+                },
+                {
+                  "id": "B_f2_J_4",
+                  "x": 498,
+                  "y": 281
+                },
+                {
+                  "id": "B_f2_J_5",
+                  "x": 568,
+                  "y": 281
+                },
+                {
+                  "id": "B_f2_J_6",
+                  "x": 705,
+                  "y": 281
+                },
+                {
+                  "id": "B_f2_J_7",
+                  "x": 777,
+                  "y": 286
+                },
+                {
+                  "id": "B_f2_J_8",
+                  "x": 846,
+                  "y": 285
+                },
+                {
+                  "id": "B_f2_J_9",
+                  "x": 947,
+                  "y": 292
+                },
+                {
+                  "id": "B_f2_N_nursingL",
+                  "x": 280,
+                  "y": 262
+                },
+                {
+                  "id": "B_f2_N_nursingR",
+                  "x": 280,
+                  "y": 299
+                },
+                {
+                  "id": "B_f2_N_surg17",
+                  "x": 430,
+                  "y": 247
+                },
+                {
+                  "id": "B_f2_N_surg18",
+                  "x": 432,
+                  "y": 301
+                },
+                {
+                  "id": "B_f2_N_Stairs_1",
+                  "x": 495,
+                  "y": 263
+                },
+                {
+                  "id": "B_f2_N_ot3",
+                  "x": 572,
+                  "y": 245
+                },
+                {
+                  "id": "B_f2_N_surgM19",
+                  "x": 570,
+                  "y": 335
+                },
+                {
+                  "id": "B_f2_N_surgF_L",
+                  "x": 714,
+                  "y": 230
+                },
+                {
+                  "id": "B_f2_N_surgF_R",
+                  "x": 705,
+                  "y": 371
+                },
+                {
+                  "id": "B_f2_N_Stairs_2",
+                  "x": 775,
+                  "y": 263
+                },
+                {
+                  "id": "B_f2_N_food",
+                  "x": 848,
+                  "y": 247
+                },
+                {
+                  "id": "B_f2_N_anes",
+                  "x": 842,
+                  "y": 345
+                },
+                {
+                  "id": "B_f2_N_burn",
+                  "x": 948,
+                  "y": 273
+                },
+                {
+                  "id": "B_f2_N_obgy",
+                  "x": 948,
+                  "y": 328
+                }
+              ],
+              "edges": [
+                {
+                  "from": "B_f2_J_2",
+                  "to": "B_f2_J_3",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_3",
+                  "to": "B_f2_J_4",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_4",
+                  "to": "B_f2_J_5",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_5",
+                  "to": "B_f2_J_6",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_6",
+                  "to": "B_f2_J_7",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_7",
+                  "to": "B_f2_J_8",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_8",
+                  "to": "B_f2_J_9",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_2",
+                  "to": "B_f2_N_nursingL",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_2",
+                  "to": "B_f2_N_nursingR",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_3",
+                  "to": "B_f2_N_surg17",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_3",
+                  "to": "B_f2_N_surg18",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_4",
+                  "to": "B_f2_N_Stairs_1",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_5",
+                  "to": "B_f2_N_ot3",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_5",
+                  "to": "B_f2_N_surgM19",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_6",
+                  "to": "B_f2_N_surgF_L",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_6",
+                  "to": "B_f2_N_surgF_R",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_7",
+                  "to": "B_f2_N_Stairs_2",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_8",
+                  "to": "B_f2_N_food",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_8",
+                  "to": "B_f2_N_anes",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_9",
+                  "to": "B_f2_N_burn",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_9",
+                  "to": "B_f2_N_obgy",
+                  "weight": 10
+                }
+              ],
+              "pois": [
+                {
+                  "id": "B_f2_p_nursingL",
+                  "name": "Nursing Home (1-3)",
+                  "node": "B_f2_N_nursingL",
+                  "icon": "info"
+                },
+                {
+                  "id": "B_f2_p_nursingR",
+                  "name": "Nursing Home (4-6)",
+                  "node": "B_f2_N_nursingR",
+                  "icon": "info"
+                },
+                {
+                  "id": "B_f2_p_surg17",
+                  "name": "Surgical Ward 17",
+                  "node": "B_f2_N_surg17",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f2_p_surg18",
+                  "name": "Surgical Ward 18",
+                  "node": "B_f2_N_surg18",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f2_p_stairs_1",
+                  "name": "Change Floor 1",
+                  "node": "B_f2_N_Stairs_1",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "B_f2_p_ot3",
+                  "name": "Operation Theatre 3",
+                  "node": "B_f2_N_ot3",
+                  "icon": "syringe"
+                },
+                {
+                  "id": "B_f2_p_surgM19",
+                  "name": "Surgical Ward 19",
+                  "node": "B_f2_N_surgM19",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f2_p_surgF_L",
+                  "name": "Surgical Female (Kids)",
+                  "node": "B_f2_N_surgF_L",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f2_p_surgF_R",
+                  "name": "Surgical Female (Kids)",
+                  "node": "B_f2_N_surgF_R",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f2_p_stairs_2",
+                  "name": "Change Floor 2",
+                  "node": "B_f2_N_Stairs_2",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "B_f2_p_food",
+                  "name": "Food",
+                  "node": "B_f2_N_food",
+                  "icon": "archive"
+                },
+                {
+                  "id": "B_f2_p_anes",
+                  "name": "Anesthesia ICU",
+                  "node": "B_f2_N_anes",
+                  "icon": "heart-pulse"
+                },
+                {
+                  "id": "B_f2_p_burn",
+                  "name": "Burn Ward",
+                  "node": "B_f2_N_burn",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f2_p_obgy",
+                  "name": "OBGY Department",
+                  "node": "B_f2_N_obgy",
+                  "icon": "bed"
+                }
+              ]
+            },
+            {
+              "code": "floor3",
+              "name": "Building B - Floor 3",
+              "level": 3,
+              "width": 1200,
+              "height": 600,
+              "nodes": [
+                {
+                  "id": "B_f3_J_2",
+                  "x": 282,
+                  "y": 282
+                },
+                {
+                  "id": "B_f3_J_3",
+                  "x": 433,
+                  "y": 281
+                },
+                {
+                  "id": "B_f3_J_4",
+                  "x": 498,
+                  "y": 281
+                },
+                {
+                  "id": "B_f3_J_5",
+                  "x": 568,
+                  "y": 281
+                },
+                {
+                  "id": "B_f3_J_6",
+                  "x": 705,
+                  "y": 281
+                },
+                {
+                  "id": "B_f3_J_7",
+                  "x": 777,
+                  "y": 286
+                },
+                {
+                  "id": "B_f3_J_8",
+                  "x": 846,
+                  "y": 285
+                },
+                {
+                  "id": "B_f3_J_9",
+                  "x": 947,
+                  "y": 292
+                },
+                {
+                  "id": "B_f3_N_newnet_1",
+                  "x": 280,
+                  "y": 262
+                },
+                {
+                  "id": "B_f3_N_newnet_2",
+                  "x": 280,
+                  "y": 299
+                },
+                {
+                  "id": "B_f3_N_ped_25",
+                  "x": 430,
+                  "y": 247
+                },
+                {
+                  "id": "B_f3_N_ped_24",
+                  "x": 432,
+                  "y": 301
+                },
+                {
+                  "id": "B_f3_N_Stairs_1",
+                  "x": 495,
+                  "y": 263
+                },
+                {
+                  "id": "B_f3_N_labour",
+                  "x": 572,
+                  "y": 245
+                },
+                {
+                  "id": "B_f3_N_ped_icu",
+                  "x": 570,
+                  "y": 335
+                },
+                {
+                  "id": "B_f3_N_obgy_28",
+                  "x": 714,
+                  "y": 230
+                },
+                {
+                  "id": "B_f3_N_obgy_29",
+                  "x": 705,
+                  "y": 371
+                },
+                {
+                  "id": "B_f3_N_Stairs_2",
+                  "x": 775,
+                  "y": 263
+                },
+                {
+                  "id": "B_f3_N_med_store",
+                  "x": 848,
+                  "y": 247
+                },
+                {
+                  "id": "B_f3_N_ot_gynac",
+                  "x": 842,
+                  "y": 345
+                },
+                {
+                  "id": "B_f3_N_fam_welfare",
+                  "x": 948,
+                  "y": 273
+                },
+                {
+                  "id": "B_f3_N_obgy_30",
+                  "x": 948,
+                  "y": 328
+                }
+              ],
+              "edges": [
+                {
+                  "from": "B_f3_J_2",
+                  "to": "B_f3_J_3",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_3",
+                  "to": "B_f3_J_4",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_4",
+                  "to": "B_f3_J_5",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_5",
+                  "to": "B_f3_J_6",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_6",
+                  "to": "B_f3_J_7",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_7",
+                  "to": "B_f3_J_8",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_8",
+                  "to": "B_f3_J_9",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_2",
+                  "to": "B_f3_N_newnet_1",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_2",
+                  "to": "B_f3_N_newnet_2",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_3",
+                  "to": "B_f3_N_ped_25",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_3",
+                  "to": "B_f3_N_ped_24",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_4",
+                  "to": "B_f3_N_Stairs_1",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_5",
+                  "to": "B_f3_N_labour",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_5",
+                  "to": "B_f3_N_ped_icu",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_6",
+                  "to": "B_f3_N_obgy_28",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_6",
+                  "to": "B_f3_N_obgy_29",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_7",
+                  "to": "B_f3_N_Stairs_2",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_8",
+                  "to": "B_f3_N_med_store",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_8",
+                  "to": "B_f3_N_ot_gynac",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_9",
+                  "to": "B_f3_N_fam_welfare",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_9",
+                  "to": "B_f3_N_obgy_30",
+                  "weight": 10
+                }
+              ],
+              "pois": [
+                {
+                  "id": "B_f3_p_newnet_1",
+                  "name": "Newnet Dept (1-3)",
+                  "node": "B_f3_N_newnet_1",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f3_p_newnet_2",
+                  "name": "Newnet Dept (4-6)",
+                  "node": "B_f3_N_newnet_2",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f3_p_ped_25",
+                  "name": "Pediatric Ward 25",
+                  "node": "B_f3_N_ped_25",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f3_p_ped_24",
+                  "name": "Pediatric Ward 24",
+                  "node": "B_f3_N_ped_24",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f3_p_stairs_1",
+                  "name": "Stairs (to F2)",
+                  "node": "B_f3_N_Stairs_1",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "B_f3_p_labour",
+                  "name": "Labour Room",
+                  "node": "B_f3_N_labour",
+                  "icon": "heart-pulse"
+                },
+                {
+                  "id": "B_f3_p_ped_icu",
+                  "name": "Pediatric ICU",
+                  "node": "B_f3_N_ped_icu",
+                  "icon": "heart-pulse"
+                },
+                {
+                  "id": "B_f3_p_obgy_28",
+                  "name": "OBGY Ward 28",
+                  "node": "B_f3_N_obgy_28",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f3_p_obgy_29",
+                  "name": "OBGY Ward 29",
+                  "node": "B_f3_N_obgy_29",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f3_p_stairs_2",
+                  "name": "Stairs (to F2)",
+                  "node": "B_f3_N_Stairs_2",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "B_f3_p_med_store",
+                  "name": "Medical Store",
+                  "node": "B_f3_N_med_store",
+                  "icon": "pill"
+                },
+                {
+                  "id": "B_f3_p_ot_gynac",
+                  "name": "OT Gynac",
+                  "node": "B_f3_N_ot_gynac",
+                  "icon": "syringe"
+                },
+                {
+                  "id": "B_f3_p_fam_welfare",
+                  "name": "Family Welfare 29",
+                  "node": "B_f3_N_fam_welfare",
+                  "icon": "bed"
+                },
+                {
+                  "id": "B_f3_p_obgy_30",
+                  "name": "OBGY Ward 30",
+                  "node": "B_f3_N_obgy_30",
+                  "icon": "bed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mapId": "geca-aurangabad",
+      "mapName": "Government College of Engineering, Aurangabad",
+      "buildings": [
+        {
+          "key": "buildingA",
+          "name": "Civil Engg Dept Block",
+          "floors": [
+            {
+              "code": "floor1",
+              "name": "Admin Block - Ground Floor",
+              "level": 1,
+              "width": 900,
+              "height": 620,
+              "nodes": [
+                {
+                  "id": "N_Start",
+                  "x": 80,
+                  "y": 330
+                },
+                {
+                  "id": "GA_J_1",
+                  "x": 190,
+                  "y": 330
+                },
+                {
+                  "id": "GA_J_2",
+                  "x": 310,
+                  "y": 330
+                },
+                {
+                  "id": "GA_J_3",
+                  "x": 445,
+                  "y": 330
+                },
+                {
+                  "id": "GA_J_4",
+                  "x": 600,
+                  "y": 330
+                },
+                {
+                  "id": "GA_J_5",
+                  "x": 740,
+                  "y": 330
+                },
+                {
+                  "id": "N_Stairs_1",
+                  "x": 445,
+                  "y": 165
+                },
+                {
+                  "id": "N_Stairs_2",
+                  "x": 445,
+                  "y": 355
+                },
+                {
+                  "id": "GA_N_admission",
+                  "x": 320,
+                  "y": 190
+                },
+                {
+                  "id": "GA_N_accounts",
+                  "x": 320,
+                  "y": 330
+                },
+                {
+                  "id": "GA_N_exam",
+                  "x": 560,
+                  "y": 190
+                },
+                {
+                  "id": "GA_N_principal",
+                  "x": 560,
+                  "y": 330
+                }
+              ],
+              "edges": [
+                {
+                  "from": "N_Start",
+                  "to": "GA_J_1",
+                  "weight": 10
+                },
+                {
+                  "from": "GA_J_1",
+                  "to": "GA_J_2",
+                  "weight": 10
+                },
+                {
+                  "from": "GA_J_2",
+                  "to": "GA_J_3",
+                  "weight": 10
+                },
+                {
+                  "from": "GA_J_3",
+                  "to": "GA_J_4",
+                  "weight": 10
+                },
+                {
+                  "from": "GA_J_4",
+                  "to": "GA_J_5",
+                  "weight": 10
+                },
+                {
+                  "from": "GA_J_3",
+                  "to": "N_Stairs_1",
+                  "weight": 8
+                },
+                {
+                  "from": "GA_J_3",
+                  "to": "N_Stairs_2",
+                  "weight": 8
+                },
+                {
+                  "from": "GA_J_2",
+                  "to": "GA_N_admission",
+                  "weight": 7
+                },
+                {
+                  "from": "GA_J_2",
+                  "to": "GA_N_accounts",
+                  "weight": 7
+                },
+                {
+                  "from": "GA_J_4",
+                  "to": "GA_N_exam",
+                  "weight": 7
+                },
+                {
+                  "from": "GA_J_4",
+                  "to": "GA_N_principal",
+                  "weight": 7
+                }
+              ],
+              "pois": [
+                {
+                  "id": "GA_p_entry",
+                  "name": "Admin Entry",
+                  "node": "N_Start",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "GA_p_admission",
+                  "name": "Admission Cell",
+                  "node": "GA_N_admission",
+                  "icon": "archive"
+                },
+                {
+                  "id": "GA_p_accounts",
+                  "name": "Accounts",
+                  "node": "GA_N_accounts",
+                  "icon": "info"
+                },
+                {
+                  "id": "GA_p_exam",
+                  "name": "Exam Section",
+                  "node": "GA_N_exam",
+                  "icon": "archive"
+                },
+                {
+                  "id": "GA_p_principal",
+                  "name": "Principal Office",
+                  "node": "GA_N_principal",
+                  "icon": "info"
+                },
+                {
+                  "id": "GA_p_stairs_1",
+                  "name": "Stairs A",
+                  "node": "N_Stairs_1",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "GA_p_stairs_2",
+                  "name": "Stairs B",
+                  "node": "N_Stairs_2",
+                  "icon": "door-open"
+                }
+              ]
+            },
+            {
+              "code": "floor2",
+              "name": "Admin Block - Floor 2",
+              "level": 2,
+              "width": 900,
+              "height": 620,
+              "nodes": [
+                {
+                  "id": "f2_GA_J_1",
+                  "x": 190,
+                  "y": 330
+                },
+                {
+                  "id": "f2_GA_J_2",
+                  "x": 310,
+                  "y": 330
+                },
+                {
+                  "id": "f2_GA_J_3",
+                  "x": 445,
+                  "y": 330
+                },
+                {
+                  "id": "f2_GA_J_4",
+                  "x": 600,
+                  "y": 330
+                },
+                {
+                  "id": "f2_GA_J_5",
+                  "x": 740,
+                  "y": 330
+                },
+                {
+                  "id": "f2_N_Stairs_1",
+                  "x": 445,
+                  "y": 165
+                },
+                {
+                  "id": "f2_N_Stairs_2",
+                  "x": 445,
+                  "y": 355
+                },
+                {
+                  "id": "GA2_N_tpo",
+                  "x": 320,
+                  "y": 190
+                },
+                {
+                  "id": "GA2_N_cdc",
+                  "x": 320,
+                  "y": 330
+                },
+                {
+                  "id": "GA2_N_board",
+                  "x": 560,
+                  "y": 190
+                },
+                {
+                  "id": "GA2_N_meeting",
+                  "x": 560,
+                  "y": 330
+                }
+              ],
+              "edges": [
+                {
+                  "from": "f2_GA_J_1",
+                  "to": "f2_GA_J_2",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_GA_J_2",
+                  "to": "f2_GA_J_3",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_GA_J_3",
+                  "to": "f2_GA_J_4",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_GA_J_4",
+                  "to": "f2_GA_J_5",
+                  "weight": 10
+                },
+                {
+                  "from": "f2_GA_J_3",
+                  "to": "f2_N_Stairs_1",
+                  "weight": 8
+                },
+                {
+                  "from": "f2_GA_J_3",
+                  "to": "f2_N_Stairs_2",
+                  "weight": 8
+                },
+                {
+                  "from": "f2_GA_J_2",
+                  "to": "GA2_N_tpo",
+                  "weight": 7
+                },
+                {
+                  "from": "f2_GA_J_2",
+                  "to": "GA2_N_cdc",
+                  "weight": 7
+                },
+                {
+                  "from": "f2_GA_J_4",
+                  "to": "GA2_N_board",
+                  "weight": 7
+                },
+                {
+                  "from": "f2_GA_J_4",
+                  "to": "GA2_N_meeting",
+                  "weight": 7
+                }
+              ],
+              "pois": [
+                {
+                  "id": "GA2_p_tpo",
+                  "name": "TPO Cell",
+                  "node": "GA2_N_tpo",
+                  "icon": "archive"
+                },
+                {
+                  "id": "GA2_p_cdc",
+                  "name": "Career Development",
+                  "node": "GA2_N_cdc",
+                  "icon": "info"
+                },
+                {
+                  "id": "GA2_p_board",
+                  "name": "Board Room",
+                  "node": "GA2_N_board",
+                  "icon": "archive"
+                },
+                {
+                  "id": "GA2_p_meeting",
+                  "name": "Meeting Hall",
+                  "node": "GA2_N_meeting",
+                  "icon": "info"
+                },
+                {
+                  "id": "GA2_p_stairs_1",
+                  "name": "Stairs A",
+                  "node": "f2_N_Stairs_1",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "GA2_p_stairs_2",
+                  "name": "Stairs B",
+                  "node": "f2_N_Stairs_2",
+                  "icon": "door-open"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "buildingB",
+          "name": "Admin Block",
+          "floors": [
+            {
+              "code": "floor1",
+              "name": "Academic Block - Ground Floor",
+              "level": 1,
+              "width": 980,
+              "height": 620,
+              "nodes": [
+                {
+                  "id": "B_J_1",
+                  "x": 90,
+                  "y": 360
+                },
+                {
+                  "id": "GB_J_2",
+                  "x": 220,
+                  "y": 360
+                },
+                {
+                  "id": "GB_J_3",
+                  "x": 350,
+                  "y": 360
+                },
+                {
+                  "id": "GB_J_4",
+                  "x": 465,
+                  "y": 360
+                },
+                {
+                  "id": "GB_J_5",
+                  "x": 620,
+                  "y": 360
+                },
+                {
+                  "id": "GB_J_6",
+                  "x": 760,
+                  "y": 360
+                },
+                {
+                  "id": "B_N_Stairs_1",
+                  "x": 465,
+                  "y": 160
+                },
+                {
+                  "id": "B_N_Stairs_2",
+                  "x": 465,
+                  "y": 365
+                },
+                {
+                  "id": "GB_N_workshop",
+                  "x": 340,
+                  "y": 190
+                },
+                {
+                  "id": "GB_N_lab1",
+                  "x": 340,
+                  "y": 370
+                },
+                {
+                  "id": "GB_N_classA",
+                  "x": 620,
+                  "y": 190
+                },
+                {
+                  "id": "GB_N_classB",
+                  "x": 620,
+                  "y": 370
+                }
+              ],
+              "edges": [
+                {
+                  "from": "B_J_1",
+                  "to": "GB_J_2",
+                  "weight": 10
+                },
+                {
+                  "from": "GB_J_2",
+                  "to": "GB_J_3",
+                  "weight": 10
+                },
+                {
+                  "from": "GB_J_3",
+                  "to": "GB_J_4",
+                  "weight": 10
+                },
+                {
+                  "from": "GB_J_4",
+                  "to": "GB_J_5",
+                  "weight": 10
+                },
+                {
+                  "from": "GB_J_5",
+                  "to": "GB_J_6",
+                  "weight": 10
+                },
+                {
+                  "from": "GB_J_4",
+                  "to": "B_N_Stairs_1",
+                  "weight": 8
+                },
+                {
+                  "from": "GB_J_4",
+                  "to": "B_N_Stairs_2",
+                  "weight": 8
+                },
+                {
+                  "from": "GB_J_3",
+                  "to": "GB_N_workshop",
+                  "weight": 7
+                },
+                {
+                  "from": "GB_J_3",
+                  "to": "GB_N_lab1",
+                  "weight": 7
+                },
+                {
+                  "from": "GB_J_5",
+                  "to": "GB_N_classA",
+                  "weight": 7
+                },
+                {
+                  "from": "GB_J_5",
+                  "to": "GB_N_classB",
+                  "weight": 7
+                }
+              ],
+              "pois": [
+                {
+                  "id": "GB_p_entry",
+                  "name": "Academic Entry",
+                  "node": "B_J_1",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "GB_p_workshop",
+                  "name": "Workshop",
+                  "node": "GB_N_workshop",
+                  "icon": "hammer"
+                },
+                {
+                  "id": "GB_p_lab1",
+                  "name": "Basic Lab",
+                  "node": "GB_N_lab1",
+                  "icon": "droplet"
+                },
+                {
+                  "id": "GB_p_classA",
+                  "name": "Classroom A",
+                  "node": "GB_N_classA",
+                  "icon": "info"
+                },
+                {
+                  "id": "GB_p_classB",
+                  "name": "Classroom B",
+                  "node": "GB_N_classB",
+                  "icon": "info"
+                },
+                {
+                  "id": "GB_p_stairs_1",
+                  "name": "Stairs A",
+                  "node": "B_N_Stairs_1",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "GB_p_stairs_2",
+                  "name": "Stairs B",
+                  "node": "B_N_Stairs_2",
+                  "icon": "door-open"
+                }
+              ]
+            },
+            {
+              "code": "floor2",
+              "name": "Academic Block - Floor 2",
+              "level": 2,
+              "width": 980,
+              "height": 620,
+              "nodes": [
+                {
+                  "id": "B_f2_J_2",
+                  "x": 220,
+                  "y": 360
+                },
+                {
+                  "id": "B_f2_J_3",
+                  "x": 350,
+                  "y": 360
+                },
+                {
+                  "id": "B_f2_J_4",
+                  "x": 465,
+                  "y": 360
+                },
+                {
+                  "id": "B_f2_J_5",
+                  "x": 620,
+                  "y": 360
+                },
+                {
+                  "id": "B_f2_J_6",
+                  "x": 760,
+                  "y": 360
+                },
+                {
+                  "id": "B_f2_N_Stairs_1",
+                  "x": 465,
+                  "y": 160
+                },
+                {
+                  "id": "B_f2_N_Stairs_2",
+                  "x": 465,
+                  "y": 365
+                },
+                {
+                  "id": "GB2_N_lab2",
+                  "x": 340,
+                  "y": 190
+                },
+                {
+                  "id": "GB2_N_lab3",
+                  "x": 340,
+                  "y": 370
+                },
+                {
+                  "id": "GB2_N_classC",
+                  "x": 620,
+                  "y": 190
+                },
+                {
+                  "id": "GB2_N_classD",
+                  "x": 620,
+                  "y": 370
+                }
+              ],
+              "edges": [
+                {
+                  "from": "B_f2_J_2",
+                  "to": "B_f2_J_3",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_3",
+                  "to": "B_f2_J_4",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_4",
+                  "to": "B_f2_J_5",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_5",
+                  "to": "B_f2_J_6",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f2_J_4",
+                  "to": "B_f2_N_Stairs_1",
+                  "weight": 8
+                },
+                {
+                  "from": "B_f2_J_4",
+                  "to": "B_f2_N_Stairs_2",
+                  "weight": 8
+                },
+                {
+                  "from": "B_f2_J_3",
+                  "to": "GB2_N_lab2",
+                  "weight": 7
+                },
+                {
+                  "from": "B_f2_J_3",
+                  "to": "GB2_N_lab3",
+                  "weight": 7
+                },
+                {
+                  "from": "B_f2_J_5",
+                  "to": "GB2_N_classC",
+                  "weight": 7
+                },
+                {
+                  "from": "B_f2_J_5",
+                  "to": "GB2_N_classD",
+                  "weight": 7
+                }
+              ],
+              "pois": [
+                {
+                  "id": "GB2_p_lab2",
+                  "name": "Machine Lab",
+                  "node": "GB2_N_lab2",
+                  "icon": "droplet"
+                },
+                {
+                  "id": "GB2_p_lab3",
+                  "name": "CAD/CAM Lab",
+                  "node": "GB2_N_lab3",
+                  "icon": "archive"
+                },
+                {
+                  "id": "GB2_p_classC",
+                  "name": "Classroom C",
+                  "node": "GB2_N_classC",
+                  "icon": "info"
+                },
+                {
+                  "id": "GB2_p_classD",
+                  "name": "Classroom D",
+                  "node": "GB2_N_classD",
+                  "icon": "info"
+                },
+                {
+                  "id": "GB2_p_stairs_1",
+                  "name": "Stairs A",
+                  "node": "B_f2_N_Stairs_1",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "GB2_p_stairs_2",
+                  "name": "Stairs B",
+                  "node": "B_f2_N_Stairs_2",
+                  "icon": "door-open"
+                }
+              ]
+            },
+            {
+              "code": "floor3",
+              "name": "Academic Block - Floor 3",
+              "level": 3,
+              "width": 980,
+              "height": 620,
+              "nodes": [
+                {
+                  "id": "B_f3_J_2",
+                  "x": 220,
+                  "y": 360
+                },
+                {
+                  "id": "B_f3_J_3",
+                  "x": 350,
+                  "y": 360
+                },
+                {
+                  "id": "B_f3_J_4",
+                  "x": 465,
+                  "y": 360
+                },
+                {
+                  "id": "B_f3_J_5",
+                  "x": 620,
+                  "y": 360
+                },
+                {
+                  "id": "B_f3_J_6",
+                  "x": 760,
+                  "y": 360
+                },
+                {
+                  "id": "B_f3_N_Stairs_1",
+                  "x": 465,
+                  "y": 160
+                },
+                {
+                  "id": "B_f3_N_Stairs_2",
+                  "x": 465,
+                  "y": 365
+                },
+                {
+                  "id": "GB3_N_library",
+                  "x": 340,
+                  "y": 190
+                },
+                {
+                  "id": "GB3_N_research",
+                  "x": 340,
+                  "y": 370
+                },
+                {
+                  "id": "GB3_N_hall",
+                  "x": 620,
+                  "y": 190
+                },
+                {
+                  "id": "GB3_N_faculty",
+                  "x": 620,
+                  "y": 370
+                }
+              ],
+              "edges": [
+                {
+                  "from": "B_f3_J_2",
+                  "to": "B_f3_J_3",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_3",
+                  "to": "B_f3_J_4",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_4",
+                  "to": "B_f3_J_5",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_5",
+                  "to": "B_f3_J_6",
+                  "weight": 10
+                },
+                {
+                  "from": "B_f3_J_4",
+                  "to": "B_f3_N_Stairs_1",
+                  "weight": 8
+                },
+                {
+                  "from": "B_f3_J_4",
+                  "to": "B_f3_N_Stairs_2",
+                  "weight": 8
+                },
+                {
+                  "from": "B_f3_J_3",
+                  "to": "GB3_N_library",
+                  "weight": 7
+                },
+                {
+                  "from": "B_f3_J_3",
+                  "to": "GB3_N_research",
+                  "weight": 7
+                },
+                {
+                  "from": "B_f3_J_5",
+                  "to": "GB3_N_hall",
+                  "weight": 7
+                },
+                {
+                  "from": "B_f3_J_5",
+                  "to": "GB3_N_faculty",
+                  "weight": 7
+                }
+              ],
+              "pois": [
+                {
+                  "id": "GB3_p_library",
+                  "name": "Central Library",
+                  "node": "GB3_N_library",
+                  "icon": "archive"
+                },
+                {
+                  "id": "GB3_p_research",
+                  "name": "Research Lab",
+                  "node": "GB3_N_research",
+                  "icon": "droplet"
+                },
+                {
+                  "id": "GB3_p_hall",
+                  "name": "Seminar Hall",
+                  "node": "GB3_N_hall",
+                  "icon": "info"
+                },
+                {
+                  "id": "GB3_p_faculty",
+                  "name": "Faculty Rooms",
+                  "node": "GB3_N_faculty",
+                  "icon": "info"
+                },
+                {
+                  "id": "GB3_p_stairs_1",
+                  "name": "Stairs A",
+                  "node": "B_f3_N_Stairs_1",
+                  "icon": "door-open"
+                },
+                {
+                  "id": "GB3_p_stairs_2",
+                  "name": "Stairs B",
+                  "node": "B_f3_N_Stairs_2",
+                  "icon": "door-open"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

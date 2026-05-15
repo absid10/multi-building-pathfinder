@@ -9,6 +9,27 @@ from .services.routing import find_route
 api = Blueprint("api", __name__, url_prefix="/api/v1")
 
 
+def _public_external_id(value: str | None) -> str | None:
+    if not value:
+        return value
+    # Stored as <building_code>::<floor_code>::<raw_id> for uniqueness.
+    if "::" in value:
+        return value.split("::")[-1]
+    return value
+
+
+def _resolve_node_by_public_id(public_id: str | None) -> Node | None:
+    if not public_id:
+        return None
+
+    exact = Node.query.filter_by(external_id=public_id).first()
+    if exact:
+        return exact
+
+    # Backward-compatibility for namespaced IDs.
+    return Node.query.filter(Node.external_id.like(f"%::{public_id}")).first()
+
+
 @api.get("/health")
 def health_check():
     return jsonify({"status": "ok"})
@@ -69,7 +90,7 @@ def floor_map(floor_id: int):
         },
         "nodes": [
             {
-                "id": node.external_id,
+                "id": _public_external_id(node.external_id),
                 "x": node.x,
                 "y": node.y,
                 "kind": node.kind,
@@ -78,8 +99,8 @@ def floor_map(floor_id: int):
         ],
         "edges": [
             {
-                "from": node_id_to_external_id.get(edge.from_node_id),
-                "to": node_id_to_external_id.get(edge.to_node_id),
+                "from": _public_external_id(node_id_to_external_id.get(edge.from_node_id)),
+                "to": _public_external_id(node_id_to_external_id.get(edge.to_node_id)),
                 "distance_m": edge.distance_m,
                 "is_accessible": edge.is_accessible,
             }
@@ -88,10 +109,10 @@ def floor_map(floor_id: int):
         ],
         "pois": [
             {
-                "id": poi.external_id,
+                "id": _public_external_id(poi.external_id),
                 "name": poi.name,
                 "category": poi.category,
-                "node": node_id_to_external_id.get(poi.node_id),
+                "node": _public_external_id(node_id_to_external_id.get(poi.node_id)),
             }
             for poi in floor.pois
             if poi.node_id in node_id_to_external_id
@@ -110,8 +131,8 @@ def compute_route():
     if not start_external_id or not end_external_id:
         return jsonify({"message": "startNodeId and endNodeId are required"}), 400
 
-    start = Node.query.filter_by(external_id=start_external_id).first()
-    end = Node.query.filter_by(external_id=end_external_id).first()
+    start = _resolve_node_by_public_id(start_external_id)
+    end = _resolve_node_by_public_id(end_external_id)
 
     if not start or not end:
         return jsonify({"message": "start or end node was not found"}), 404
