@@ -556,6 +556,21 @@ const Index = () => {
 
             // ── Waiting for first compass reading ─────────────────────────
             if (!headingState.hasReading) {
+              // Browser requires a user tap to grant permission (iOS 13+)
+              if (headingState.permissionNeeded) {
+                return (
+                  <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20">
+                    <button
+                      onClick={() => headingState.requestPermission()}
+                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 border border-blue-400 text-white text-sm font-semibold shadow-lg backdrop-blur-sm transition-all"
+                    >
+                      <AlertTriangle className="w-4 h-4" />
+                      Tap to enable compass
+                    </button>
+                  </div>
+                );
+              }
+              // Auto-permission browser — waiting for first reading (will auto-skip after 3s)
               return (
                 <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/90 border border-yellow-400 text-white text-xs font-semibold shadow backdrop-blur-sm">

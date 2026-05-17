@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface HeadingState {
   heading: number;       // stable heading 0-360° (only updated when flat)
@@ -6,6 +6,8 @@ export interface HeadingState {
   hasReading: boolean;   // true once first valid flat reading received
   supported: boolean;
   isFlat: boolean;       // true when phone is horizontal enough to trust compass
+  permissionNeeded: boolean; // true when user gesture is required to grant permission
+  requestPermission: () => Promise<void>; // call from a click handler to request permission
 }
 
 const normalizeHeading = (v: number) => ((v % 360) + 360) % 360;
@@ -32,26 +34,32 @@ const getRawHeading = (
   return null;
 };
 
+// Check if the browser requires explicit permission request (iOS 13+, some Android)
+const needsPermissionRequest = (): boolean => {
+  const DOE = DeviceOrientationEvent as any;
+  return typeof DOE.requestPermission === "function";
+};
+
 export const useDeviceHeading = (enabled: boolean): HeadingState => {
   const [heading,    setHeading]    = useState(0);
   const [rawHeading, setRawHeading] = useState(0);
   const [supported,  setSupported]  = useState(false);
   const [hasReading, setHasReading] = useState(false);
   const [isFlat,     setIsFlat]     = useState(true);
+  const [permissionNeeded, setPermissionNeeded] = useState(false);
 
   // Motion gate — freeze heading while walking vibration is detected
   const isMovingRef      = useRef(false);
   const motionClearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const smoothMagRef     = useRef(9.8);
+  const listenersAttached = useRef(false);
+  const cleanupRef       = useRef<(() => void) | null>(null);
 
-  useEffect(() => {
-    if (!enabled || typeof window === "undefined") return;
+  // Attach orientation + motion listeners (extracted so we can call after permission grant)
+  const attachListeners = useCallback(() => {
+    if (listenersAttached.current) return;
+    listenersAttached.current = true;
 
-    const hasOrientation = "DeviceOrientationEvent" in window;
-    setSupported(hasOrientation);
-    if (!hasOrientation) return;
-
-    // Motion detector — raises flag during walking vibration
     const MOTION_THRESHOLD = 11.5;
     const MOTION_QUIET_MS  = 800;
 
@@ -72,15 +80,10 @@ export const useDeviceHeading = (enabled: boolean): HeadingState => {
 
     const onOrientation = (e: DeviceOrientationEvent) => {
       const beta = e.beta ?? 0;
-      // absBeta: 0 = flat, 90 = vertical. We use abs because face-up and
-      // face-down both have beta near 0 or near ±180 — we only care about tilt.
       const absBeta = Math.abs(beta);
-      // Phone is flat if beta is near 0 (face-up) 
-      // Beta near ±180 means face-down — also flat, also fine
       const flat = absBeta < FLAT_BETA_THRESHOLD || absBeta > (180 - FLAT_BETA_THRESHOLD);
       setIsFlat(flat);
 
-      // Only update heading when phone is flat AND not shaking from walking
       if (!flat || isMovingRef.current) return;
 
       const raw = getRawHeading(
@@ -96,12 +99,81 @@ export const useDeviceHeading = (enabled: boolean): HeadingState => {
     window.addEventListener("devicemotion",      onMotion,      true);
     window.addEventListener("deviceorientation", onOrientation, true);
 
-    return () => {
+    cleanupRef.current = () => {
       window.removeEventListener("devicemotion",      onMotion,      true);
       window.removeEventListener("deviceorientation", onOrientation, true);
       if (motionClearTimer.current) clearTimeout(motionClearTimer.current);
+      listenersAttached.current = false;
     };
-  }, [enabled]);
+  }, []);
 
-  return { heading, rawHeading, supported, hasReading, isFlat };
+  // Manual permission request — must be called from a user gesture (click/tap handler)
+  const requestPermission = useCallback(async () => {
+    try {
+      const DOE = DeviceOrientationEvent as any;
+      if (typeof DOE.requestPermission === "function") {
+        const result = await DOE.requestPermission();
+        if (result === "granted") {
+          setPermissionNeeded(false);
+          attachListeners();
+        }
+      }
+      // Also request DeviceMotionEvent permission if available (iOS)
+      const DME = DeviceMotionEvent as any;
+      if (typeof DME.requestPermission === "function") {
+        await DME.requestPermission();
+      }
+    } catch (err) {
+      console.warn("Compass permission request failed:", err);
+    }
+  }, [attachListeners]);
+
+  useEffect(() => {
+    if (!enabled || typeof window === "undefined") return;
+
+    const hasOrientation = "DeviceOrientationEvent" in window;
+    setSupported(hasOrientation);
+    if (!hasOrientation) return;
+
+    // If browser requires explicit permission (iOS 13+), try requesting it
+    if (needsPermissionRequest()) {
+      // We can't auto-request — it MUST come from a user gesture.
+      // Signal to the UI that a tap is needed.
+      setPermissionNeeded(true);
+      return;
+    }
+
+    // Browser doesn't need requestPermission — attach listeners directly.
+    // But on some Android browsers, events may still not fire. We use a
+    // timeout to detect this and surface a fallback.
+    attachListeners();
+
+    // Fallback: if no reading after 3s, the browser might be silently blocking.
+    // In that case, we just continue without compass (the UI will skip the
+    // "waiting" state after a timeout handled in Index.tsx).
+    const fallbackTimer = setTimeout(() => {
+      setHasReading((current) => {
+        if (!current) {
+          console.warn("No compass data after 3s — device may not have a magnetometer or browser is blocking.");
+          // Force past the waiting state so navigation isn't blocked
+          return true;
+        }
+        return current;
+      });
+    }, 3000);
+
+    return () => {
+      clearTimeout(fallbackTimer);
+      if (cleanupRef.current) cleanupRef.current();
+    };
+  }, [enabled, attachListeners]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (cleanupRef.current) cleanupRef.current();
+    };
+  }, []);
+
+  return { heading, rawHeading, supported, hasReading, isFlat, permissionNeeded, requestPermission };
 };
