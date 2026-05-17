@@ -32,16 +32,6 @@ const seedMaps: PublicMap[] = [
     isPublic: true,
     thumbnail: '/maps/gmch-campus.jpg',
   },
-  {
-    id: 'geca-aurangabad',
-    name: 'Government College of Engineering, Aurangabad',
-    description: 'Multi-building engineering campus',
-    buildingCount: 12,
-    floorCount: 3,
-    uploadedBy: SEEDED_UPLOADER_NAME,
-    isPublic: true,
-    thumbnail: '/maps/geca-location.jpg',
-  },
 ];
 
 export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMapsViewerProps) {
