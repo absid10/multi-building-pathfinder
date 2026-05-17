@@ -122,6 +122,11 @@ export default function UploadedMapNavigatorPage() {
   const building = graph?.buildings?.[selectedBuilding] || null;
   const floor = building?.floors?.[selectedFloor] || null;
 
+  // Background image URL
+  const backgroundImageUrl = mapFileName 
+    ? `${API_BASE}/maps/files/${encodeURIComponent(mapFileName)}` 
+    : null;
+
   const floorEdges = useMemo(() => {
     if (!floor) return [];
     return floor.edges.map((e) => ({
@@ -308,11 +313,6 @@ export default function UploadedMapNavigatorPage() {
     reader.readAsText(file);
     e.target.value = '';
   };
-
-  // Background image URL
-  const backgroundImageUrl = mapFileName 
-    ? `${API_BASE}/maps/files/${encodeURIComponent(mapFileName)}` 
-    : null;
 
   useEffect(() => {
     if (!editMode || !autoDetectOnOpen || !backgroundImageUrl || !floor || isDetecting) return;

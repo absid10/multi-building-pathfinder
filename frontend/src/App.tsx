@@ -32,9 +32,13 @@ const App = () => (
             <Route path="/" element={<LandingPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/future-enhancements" element={<FutureEnhancementsPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/navigate/:mapId" element={<Index />} />
             <Route path="/navigate/user-:mapId" element={<Suspense fallback={<div className="p-6">Loading map…</div>}><ErrorBoundary><UploadedMapNavigatorPage /></ErrorBoundary></Suspense>} />
             <Route path="/navigate/upload/:mapId" element={<Suspense fallback={<div className="p-6">Loading map…</div>}><ErrorBoundary><UploadedMapNavigatorPage /></ErrorBoundary></Suspense>} />
             <Route path="/navigate/upload/:mapId/preview-3d" element={<Suspense fallback={<div className="p-6">Loading 3D preview…</div>}><ErrorBoundary><UploadedMap3DPreviewPage /></ErrorBoundary></Suspense>} />
+            <Route path="/future" element={<FutureEnhancementsPage />} />
             <Route path="/navigate/user-:mapId" element={<ErrorBoundary><UploadedMapNavigatorPage /></ErrorBoundary>} />
             <Route path="/navigate/upload/:mapId" element={<ErrorBoundary><UploadedMapNavigatorPage /></ErrorBoundary>} />
             <Route path="/navigate/upload/:mapId/preview-3d" element={<ErrorBoundary><UploadedMap3DPreviewPage /></ErrorBoundary>} />
