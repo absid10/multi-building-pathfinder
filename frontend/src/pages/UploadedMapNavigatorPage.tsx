@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Home, Navigation, Edit3, Box, QrCode, Copy, Download } from 'lucide-react';
+import { ArrowLeft, Home, Navigation, Edit3, Box } from 'lucide-react';
 import { toast } from 'sonner';
 import { API_BASE } from '../config/api';
 import { findNearestNode, findPath, Node, POI } from '../utils/pathfinding';
 import { detectRoomsFromImage } from '../utils/autoDetectRooms';
 import MapEditorToolbar from '../components/MapEditorToolbar';
+import QrShareButton from '../components/QrShareButton';
 import type { EditTool } from '../components/MapEditorToolbar';
 
 type GraphEdge = {
@@ -63,8 +64,6 @@ export default function UploadedMapNavigatorPage() {
   const [path, setPath] = useState<Node[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [qrOpen, setQrOpen] = useState(false);
-  const [qrUrl, setQrUrl] = useState<string | null>(null);
 
   // Editor states
   const [editMode, setEditMode] = useState(false);
@@ -510,17 +509,12 @@ export default function UploadedMapNavigatorPage() {
               </button>
             )}
             {mapId && (
-              <button
-                onClick={() => {
-                  const url = window.location.href;
-                  const qr = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}`;
-                  setQrUrl(qr);
-                  setQrOpen(true);
-                }}
+              <QrShareButton
+                url={`${window.location.origin}/navigate/${mapId}`}
+                buttonLabel="Share (QR)"
+                buttonTitle="Generate QR for this map link"
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 font-medium transition-all shadow-sm cursor-pointer hover:shadow"
-              >
-                <QrCode className="h-4 w-4 text-slate-700" /> Share (QR)
-              </button>
+              />
             )}
           </div>
           {!editMode && (
@@ -843,41 +837,6 @@ export default function UploadedMapNavigatorPage() {
               🏢 {graph.buildings.length} building{graph.buildings.length > 1 ? 's' : ''}, {building.floors.length} floor{building.floors.length > 1 ? 's' : ''}
             </span>
           )}
-        </div>
-      </div>
-      {qrOpen && qrUrl && (
-        <QrModal url={qrUrl} onClose={() => { setQrOpen(false); setQrUrl(null); }} />
-      )}
-    </div>
-  );
-}
-
-// QR helpers (outside component)
-function QrModal({ url, onClose }: { url: string | null; onClose: () => void }) {
-  if (!url) return null;
-  const handleCopy = async () => {
-    try { await navigator.clipboard.writeText(window.location.href); alert('Link copied to clipboard'); }
-    catch { alert('Could not copy'); }
-  };
-  const handleDownload = () => {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'map-link-qr.png';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl p-6 shadow-lg max-w-sm w-full">
-        <h3 className="text-lg font-semibold text-slate-900 mb-3">Share this map</h3>
-        <div className="flex flex-col items-center gap-3">
-          <img src={url} alt="QR code" className="w-56 h-56 bg-white rounded" />
-          <div className="flex gap-2 w-full">
-            <button onClick={handleCopy} className="flex-1 inline-flex items-center gap-2 justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm"> <Copy className="h-4 w-4"/> Copy link</button>
-            <button onClick={handleDownload} className="flex-1 inline-flex items-center gap-2 justify-center rounded-lg bg-emerald-600 text-white px-3 py-2 text-sm"> <Download className="h-4 w-4"/> Download</button>
-          </div>
-          <button onClick={onClose} className="mt-2 text-xs text-slate-600">Close</button>
         </div>
       </div>
     </div>

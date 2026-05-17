@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Building2, MapPin, Search, Navigation } from 'lucide-react';
 import { API_BASE } from '../config/api';
 import CampusPreview from './CampusPreview';
+import QrShareButton from './QrShareButton';
 
 const SEEDED_UPLOADER_NAME = 'Abdullah';
 
@@ -104,20 +105,30 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
 
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {filteredMaps.map((map) => (
-            <button
+            <div
               key={map.id}
-              onClick={() => setSelectedMapId(map.id)}
-              className={`rounded-xl border p-3 text-left transition ${
+              className={`relative rounded-xl border p-3 text-left transition ${
                 selectedMap?.id === map.id
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40'
                   : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/40 dark:hover:border-slate-700'
               }`}
             >
-              <p className="font-semibold text-slate-800 dark:text-slate-100">{map.name}</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                {map.description} - Uploaded by {map.uploadedBy}
-              </p>
-            </button>
+              <button onClick={() => setSelectedMapId(map.id)} className="w-full text-left pr-12">
+                <p className="font-semibold text-slate-800 dark:text-slate-100">{map.name}</p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  {map.description} - Uploaded by {map.uploadedBy}
+                </p>
+              </button>
+              <div className="absolute right-3 top-3">
+                <QrShareButton
+                  url={`${window.location.origin}/navigate/${map.id}`}
+                  buttonLabel=""
+                  buttonTitle={`Generate QR for ${map.name}`}
+                  iconOnly
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                />
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -161,20 +172,28 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
               )}
             </div>
 
-            <button
-              onClick={() => {
-                if (!selectedMap) return;
-                if (onExploreMap) {
-                  onExploreMap(selectedMap);
-                  return;
-                }
-                onSelectMap(selectedMap);
-              }}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
-            >
-              <Navigation className="h-5 w-5" />
-              Explore Map
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  if (!selectedMap) return;
+                  if (onExploreMap) {
+                    onExploreMap(selectedMap);
+                    return;
+                  }
+                  onSelectMap(selectedMap);
+                }}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+              >
+                <Navigation className="h-5 w-5" />
+                Explore Map
+              </button>
+              <QrShareButton
+                url={`${window.location.origin}/navigate/${selectedMap.id}`}
+                buttonLabel="QR"
+                buttonTitle={`Generate QR for ${selectedMap.name}`}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+              />
+            </div>
           </div>
         </div>
       )}
