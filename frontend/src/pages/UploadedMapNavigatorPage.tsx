@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Home, Navigation, Edit3 } from 'lucide-react';
+import { ArrowLeft, Home, Navigation, Edit3, Box } from 'lucide-react';
 import { toast } from 'sonner';
 import { API_BASE } from '../config/api';
 import { findNearestNode, findPath, Node, POI } from '../utils/pathfinding';
@@ -499,6 +499,14 @@ export default function UploadedMapNavigatorPage() {
             <button onClick={() => navigate('/dashboard')} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 font-medium transition-all shadow-sm cursor-pointer hover:shadow">
               <ArrowLeft className="h-4 w-4 text-slate-400" /> Dashboard
             </button>
+            {mapId && (
+              <button
+                onClick={() => navigate(`/navigate/upload/${mapId}/preview-3d`)}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 font-medium transition-all shadow-sm cursor-pointer hover:shadow"
+              >
+                <Box className="h-4 w-4 text-emerald-600" /> 3D Preview
+              </button>
+            )}
           </div>
           {!editMode && (
             <button 

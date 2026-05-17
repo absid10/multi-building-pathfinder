@@ -12,6 +12,7 @@ import FutureEnhancementsPage from "./pages/FutureEnhancementsPage";
 import ContactPage from "./pages/ContactPage";
 import Index from "./pages/Index";
 import UploadedMapNavigatorPage from "./pages/UploadedMapNavigatorPage";
+import UploadedMap3DPreviewPage from "./pages/UploadedMap3DPreviewPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/navigate/:mapId" element={<Index />} />
             <Route path="/navigate/user-:mapId" element={<UploadedMapNavigatorPage />} />
             <Route path="/navigate/upload/:mapId" element={<UploadedMapNavigatorPage />} />
+            <Route path="/navigate/upload/:mapId/preview-3d" element={<UploadedMap3DPreviewPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

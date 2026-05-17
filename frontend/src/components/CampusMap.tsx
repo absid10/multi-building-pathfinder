@@ -1,4 +1,17 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
+import { toast } from "sonner";
+
+type OverlayPolygon = {
+  id: string;
+  points: string;
+};
+
+type DragRect = {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+};
 
 interface CampusMapProps {
   onSelectBuilding: (buildingId: string) => void;
@@ -18,12 +31,189 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   disableBuildingNavigation = false,
 }) => {
   const isGeca = (mapId || "").includes("geca");
+  const viewWidth = isGeca ? 1200 : 1132;
+  const viewHeight = isGeca ? 800 : 801;
+
+  const [areaMode, setAreaMode] = useState(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+  const [draftRect, setDraftRect] = useState<DragRect | null>(null);
+  const [selectedRect, setSelectedRect] = useState<DragRect | null>(null);
+  const [overlayPolygons, setOverlayPolygons] = useState<OverlayPolygon[]>([]);
+  const [loadingOverlay, setLoadingOverlay] = useState(false);
+
+  // Approximate campus bounds used to project OSM footprint coordinates.
+  const campusBounds = useMemo(
+    () =>
+      isGeca
+        ? { north: 19.9139, south: 19.9065, west: 75.3515, east: 75.3645 }
+        : { north: 19.9076, south: 19.9005, west: 75.3365, east: 75.3488 },
+    [isGeca]
+  );
+
+  const handleBuildingPick = (buildingId: string) => {
+    if (areaMode || disableBuildingNavigation) return;
+    onSelectBuilding(buildingId);
+  };
+
+  const toSvgPoint = (evt: React.MouseEvent<SVGSVGElement>) => {
+    const rect = evt.currentTarget.getBoundingClientRect();
+    const x = ((evt.clientX - rect.left) / rect.width) * viewWidth;
+    const y = ((evt.clientY - rect.top) / rect.height) * viewHeight;
+    return { x, y };
+  };
+
+  const svgToLatLng = (x: number, y: number) => {
+    const lat = campusBounds.north - (y / viewHeight) * (campusBounds.north - campusBounds.south);
+    const lng = campusBounds.west + (x / viewWidth) * (campusBounds.east - campusBounds.west);
+    return { lat, lng };
+  };
+
+  const latLngToSvg = (lat: number, lng: number) => {
+    const x = ((lng - campusBounds.west) / (campusBounds.east - campusBounds.west)) * viewWidth;
+    const y = ((campusBounds.north - lat) / (campusBounds.north - campusBounds.south)) * viewHeight;
+    return { x, y };
+  };
+
+  const fetchOsmBuildings = async (rect: DragRect) => {
+    const minX = Math.min(rect.x1, rect.x2);
+    const maxX = Math.max(rect.x1, rect.x2);
+    const minY = Math.min(rect.y1, rect.y2);
+    const maxY = Math.max(rect.y1, rect.y2);
+    const nw = svgToLatLng(minX, minY);
+    const se = svgToLatLng(maxX, maxY);
+
+    const south = Math.min(nw.lat, se.lat);
+    const north = Math.max(nw.lat, se.lat);
+    const west = Math.min(nw.lng, se.lng);
+    const east = Math.max(nw.lng, se.lng);
+
+    const query = `[out:json][timeout:25];(way["building"](${south},${west},${north},${east});relation["building"](${south},${west},${north},${east}););out body geom;`;
+
+    setLoadingOverlay(true);
+    try {
+      const resp = await fetch("https://overpass-api.de/api/interpreter", {
+        method: "POST",
+        body: query,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      });
+      if (!resp.ok) throw new Error("OSM request failed");
+      const data = await resp.json();
+      const elements = Array.isArray(data?.elements) ? data.elements : [];
+
+      const polygons: OverlayPolygon[] = elements
+        .filter((el: any) => Array.isArray(el.geometry) && el.geometry.length >= 3)
+        .map((el: any) => {
+          const points = el.geometry
+            .map((pt: any) => {
+              const projected = latLngToSvg(pt.lat, pt.lon);
+              return `${projected.x.toFixed(2)},${projected.y.toFixed(2)}`;
+            })
+            .join(" ");
+          return { id: `osm-${el.type}-${el.id}`, points };
+        });
+
+      setOverlayPolygons(polygons);
+      toast.success(`Loaded ${polygons.length} OSM building footprints`);
+    } catch (_err) {
+      toast.error("Could not load OSM footprints for selected area");
+    } finally {
+      setLoadingOverlay(false);
+    }
+  };
+
+  const onSvgMouseDown = (evt: React.MouseEvent<SVGSVGElement>) => {
+    if (!areaMode) return;
+    evt.preventDefault();
+    const pt = toSvgPoint(evt);
+    setDragStart(pt);
+    setDraftRect({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
+  };
+
+  const onSvgMouseMove = (evt: React.MouseEvent<SVGSVGElement>) => {
+    if (!areaMode || !dragStart) return;
+    const pt = toSvgPoint(evt);
+    setDraftRect({ x1: dragStart.x, y1: dragStart.y, x2: pt.x, y2: pt.y });
+  };
+
+  const onSvgMouseUp = async (evt: React.MouseEvent<SVGSVGElement>) => {
+    if (!areaMode || !dragStart) return;
+    const pt = toSvgPoint(evt);
+    const rect = { x1: dragStart.x, y1: dragStart.y, x2: pt.x, y2: pt.y };
+    setDragStart(null);
+    setDraftRect(null);
+
+    const width = Math.abs(rect.x2 - rect.x1);
+    const height = Math.abs(rect.y2 - rect.y1);
+    if (width < 18 || height < 18) {
+      toast.info("Drag a larger area to fetch OSM footprints");
+      return;
+    }
+
+    setSelectedRect(rect);
+    await fetchOsmBuildings(rect);
+  };
+
+  const renderRect = (
+    rect: DragRect,
+    key: string,
+    stroke: string,
+    fill: string,
+    dasharray: string
+  ) => {
+    const x = Math.min(rect.x1, rect.x2);
+    const y = Math.min(rect.y1, rect.y2);
+    const width = Math.abs(rect.x2 - rect.x1);
+    const height = Math.abs(rect.y2 - rect.y1);
+    return (
+      <rect
+        key={key}
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={1.5}
+        strokeDasharray={dasharray}
+        className="pointer-events-none"
+      />
+    );
+  };
 
   return (
-    <div className="w-full h-[70vh] bg-[hsl(var(--map-bg))] rounded-lg border-2 border-border shadow-lg flex items-center justify-center">
+    <div className="relative w-full h-[70vh] bg-[hsl(var(--map-bg))] rounded-lg border-2 border-border shadow-lg flex items-center justify-center overflow-hidden">
+      <div className="absolute top-3 left-3 z-20 flex flex-wrap gap-2">
+        <button
+          onClick={() => setAreaMode((v) => !v)}
+          className={`px-3 py-1.5 text-xs rounded-md border ${
+            areaMode
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white text-slate-700 border-slate-300"
+          }`}
+        >
+          {areaMode ? "Area Mode: ON" : "Select OSM Area"}
+        </button>
+        <button
+          onClick={() => {
+            setOverlayPolygons([]);
+            setSelectedRect(null);
+          }}
+          className="px-3 py-1.5 text-xs rounded-md border bg-white text-slate-700 border-slate-300"
+        >
+          Clear Overlay
+        </button>
+        {loadingOverlay && (
+          <span className="px-3 py-1.5 text-xs rounded-md border bg-amber-50 text-amber-700 border-amber-300">
+            Loading OSM…
+          </span>
+        )}
+      </div>
       <svg
         viewBox={isGeca ? "0 0 1200 800" : "0 0 1132 801"}
         className="w-full h-full"
+        onMouseDown={onSvgMouseDown}
+        onMouseMove={onSvgMouseMove}
+        onMouseUp={onSvgMouseUp}
       >
         {isGeca ? (
           <>
@@ -63,8 +253,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               stroke="black"
               strokeWidth="2"
               opacity="0.85"
-              className={`${disableBuildingNavigation ? "cursor-not-allowed" : "cursor-pointer hover:opacity-100"} transition`}
-              onClick={() => onSelectBuilding("buildingA")}
+              className={`${disableBuildingNavigation || areaMode ? "cursor-not-allowed" : "cursor-pointer hover:opacity-100"} transition`}
+              onClick={() => handleBuildingPick("buildingA")}
             />
             <text x="545" y="485" textAnchor="middle" fontSize="20" fill="black" fontWeight="600" className="pointer-events-none">
               {buildingALabel || "Admin Block"}
@@ -85,8 +275,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               stroke="black"
               strokeWidth="2"
               opacity="0.85"
-              className={`${disableBuildingNavigation ? "cursor-not-allowed" : "cursor-pointer hover:opacity-100"} transition`}
-              onClick={() => onSelectBuilding("buildingB")}
+              className={`${disableBuildingNavigation || areaMode ? "cursor-not-allowed" : "cursor-pointer hover:opacity-100"} transition`}
+              onClick={() => handleBuildingPick("buildingB")}
             />
             <text x="888" y="396" textAnchor="middle" fontSize="20" fill="black" fontWeight="600" className="pointer-events-none">
               {buildingBLabel || "Academic Block"}
@@ -164,8 +354,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             stroke="black" // ✅ Black border
             strokeWidth="2"
             opacity="0.8"
-            className="cursor-pointer hover:opacity-100 transition"
-            onClick={() => onSelectBuilding("buildingA")}
+            className={`${areaMode ? "cursor-not-allowed" : "cursor-pointer hover:opacity-100"} transition`}
+            onClick={() => handleBuildingPick("buildingA")}
           />
           <text
             x="585"
@@ -186,8 +376,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             stroke="black" // ✅ Black border
             strokeWidth="2"
             opacity="0.8"
-            className="cursor-pointer hover:opacity-100 transition"
-            onClick={() => onSelectBuilding("buildingB")}
+            className={`${areaMode ? "cursor-not-allowed" : "cursor-pointer hover:opacity-100"} transition`}
+            onClick={() => handleBuildingPick("buildingB")}
           />
           <text
             x="800"
@@ -215,6 +405,36 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         )}
           </>
         )}
+
+        {/* OSM building footprint overlays */}
+        {overlayPolygons.map((poly) => (
+          <polygon
+            key={poly.id}
+            points={poly.points}
+            fill="rgba(56, 189, 248, 0.18)"
+            stroke="rgba(14, 116, 144, 0.95)"
+            strokeWidth="1.2"
+            strokeDasharray="6 4"
+            className="pointer-events-none"
+          />
+        ))}
+
+        {selectedRect &&
+          renderRect(
+            selectedRect,
+            "selected-osm-rect",
+            "#0e7490",
+            "rgba(34,211,238,0.10)",
+            "8 4"
+          )}
+        {draftRect &&
+          renderRect(
+            draftRect,
+            "draft-osm-rect",
+            "#2563eb",
+            "rgba(59,130,246,0.10)",
+            "8 4"
+          )}
       </svg>
     </div>
   );
