@@ -40,6 +40,11 @@ export default function DashboardPage() {
               <p className="text-sm text-slate-700 dark:text-slate-300">Control visibility for public map access.</p>
             </div>
           </div>
+          <div className="mt-4 max-w-3xl">
+            <div className="rounded-lg border border-amber-200 bg-amber-50/80 px-4 py-3 text-amber-800 text-sm">
+              <strong className="font-semibold">Experimental:</strong> Auto-detect, 3D preview, and QR share are currently under testing — use them as experimental features and verify results with the manual editor.
+            </div>
+          </div>
         </div>
       </div>
 
