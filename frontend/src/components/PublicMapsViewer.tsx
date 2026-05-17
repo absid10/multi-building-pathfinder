@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Building2, MapPin, Search, Navigation, QrCode, Copy, Download } from 'lucide-react';
+import { Building2, MapPin, Search, Navigation } from 'lucide-react';
 import { API_BASE } from '../config/api';
 import CampusPreview from './CampusPreview';
 
@@ -82,16 +82,6 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
     || maps[0]
     || null;
 
-  const [qrOpen, setQrOpen] = useState(false);
-  const [qrUrl, setQrUrl] = useState<string | null>(null);
-
-  const openQrFor = (map: PublicMap) => {
-    const url = `${window.location.origin}/navigate/${map.id}`;
-    const qr = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}`;
-    setQrUrl(qr);
-    setQrOpen(true);
-  };
-
   useEffect(() => {
     if (selectedMap) onSelectMap(selectedMap);
   }, [selectedMap, onSelectMap]);
@@ -114,64 +104,40 @@ export default function PublicMapsViewer({ onSelectMap, onExploreMap }: PublicMa
 
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {filteredMaps.map((map) => (
-            <div key={map.id} className={`relative rounded-xl border p-3 transition ${
-              selectedMap?.id === map.id
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40'
-                : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/40 dark:hover:border-slate-700'
-            }`}>
-              <button onClick={() => setSelectedMapId(map.id)} className="text-left w-full">
-                <p className="font-semibold text-slate-800 dark:text-slate-100">{map.name}</p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{map.description} - Uploaded by {map.uploadedBy}</p>
-              </button>
-              <button onClick={() => openQrFor(map)} title="Share (QR)" className="absolute right-3 top-3 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs hover:bg-slate-50">
-                <QrCode className="h-4 w-4" />
-              </button>
-            </div>
+            <button
+              key={map.id}
+              onClick={() => setSelectedMapId(map.id)}
+              className={`rounded-xl border p-3 text-left transition ${
+                selectedMap?.id === map.id
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40'
+                  : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/40 dark:hover:border-slate-700'
+              }`}
+            >
+              <p className="font-semibold text-slate-800 dark:text-slate-100">{map.name}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                {map.description} - Uploaded by {map.uploadedBy}
+              </p>
+            </button>
           ))}
         </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  if (!selectedMap) return;
-                  if (onExploreMap) {
-                    onExploreMap(selectedMap);
-                    return;
-                  }
-                  onSelectMap(selectedMap);
-                }}
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
-              >
-                <Navigation className="h-5 w-5" />
-                Explore Map
-              </button>
-              <button
-                onClick={() => { if (selectedMap) openQrFor(selectedMap); }}
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 font-semibold text-slate-700 hover:bg-slate-50"
-                title="Share (QR)"
-              >
-                <QrCode className="h-5 w-5" />
-                QR
-              </button>
-            </div>
+      </div>
+
+      {selectedMap && (
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-sm dark:border-slate-800">
+          <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-6 text-white">
+            <h2 className="mb-2 text-3xl font-bold">{selectedMap.name}</h2>
+            <p className="text-blue-100">{selectedMap.description} -- Uploaded by {selectedMap.uploadedBy}</p>
+          </div>
+
+          <div className="p-6">
+            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="rounded-lg bg-blue-50 p-4 text-center dark:bg-blue-950/40">
+                <Building2 className="mx-auto mb-2 h-8 w-8 text-blue-600" />
+                <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{selectedMap.buildingCount}</p>
                 <p className="text-sm text-gray-600 dark:text-slate-300">Buildings</p>
               </div>
               <div className="rounded-lg bg-emerald-50 p-4 text-center dark:bg-emerald-950/40">
                 <MapPin className="mx-auto mb-2 h-8 w-8 text-emerald-600" />
-    {qrOpen && qrUrl && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-        <div className="bg-white rounded-2xl p-6 shadow-lg max-w-sm w-full">
-          <h3 className="text-lg font-semibold text-slate-900 mb-3">Share this map</h3>
-          <div className="flex flex-col items-center gap-3">
-            <img src={qrUrl} alt="QR code" className="w-56 h-56 bg-white rounded" />
-            <div className="flex gap-2 w-full">
-              <button onClick={async () => { try { await navigator.clipboard.writeText(window.location.href); alert('Link copied to clipboard'); } catch { alert('Could not copy'); } }} className="flex-1 inline-flex items-center gap-2 justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm"> <Copy className="h-4 w-4"/> Copy link</button>
-              <button onClick={() => { const a = document.createElement('a'); a.href = qrUrl; a.download = 'map-link-qr.png'; document.body.appendChild(a); a.click(); a.remove(); }} className="flex-1 inline-flex items-center gap-2 justify-center rounded-lg bg-emerald-600 text-white px-3 py-2 text-sm"> <Download className="h-4 w-4"/> Download</button>
-            </div>
-            <button onClick={() => { setQrOpen(false); setQrUrl(null); }} className="mt-2 text-xs text-slate-600">Close</button>
-          </div>
-        </div>
-      </div>
-    )}
                 <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{selectedMap.floorCount}</p>
                 <p className="text-sm text-gray-600 dark:text-slate-300">Floors</p>
               </div>
