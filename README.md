@@ -14,6 +14,15 @@ This platform combines graph-based routing, map ingestion, and modern web deploy
 - GitHub: https://github.com/absid10
 - LinkedIn: https://www.linkedin.com/in/absid10/
 
+## About / Major Project
+
+- This repository contains the Final-Year Major Project (Major Project) developed by the team below.
+- Team members:
+	- Abdullah Ahmed Siddiqui
+	- Syed Sulaim Razvi
+	- Siddiqui Arhaan Nazir
+	- Kaif Bagban
+
 ## Resume Reference Snapshot
 
 - Profile summary: Aspiring Software Engineer with strong fundamentals in full-stack development, data structures, and databases.

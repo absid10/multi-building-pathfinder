@@ -9,6 +9,15 @@ The app renders SVG map layers, runs route discovery, and integrates with the ba
 - Backend API (Render): https://multi-building-pathfinder.onrender.com
 - API base path used by frontend: `/api/v1`
 
+## About / Major Project
+
+- This frontend is part of the Final-Year Major Project developed by the team below.
+- Team members:
+	- Abdullah Ahmed Siddiqui
+	- Syed Sulaim Razvi
+	- Siddiqui Arhaan Nazir
+	- Kaif Bagban
+
 ## Core Features
 
 - Multi-building and multi-floor indoor wayfinding UI
