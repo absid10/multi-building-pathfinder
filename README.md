@@ -48,6 +48,18 @@ This project models indoor spaces as weighted graphs and computes shortest route
 - Uploaded map pipeline with analysis status tracking
 - Public/private map visibility management
 - Route and map APIs for extensibility
+ 
+Recent frontend additions
+- Experimental auto-detect: client-side room detection from uploaded floorplan images (marking is approximate; use manual mapping if results are poor).
+- Manual Map Editor: place nodes (rooms), stairs, and entrances; draw edges; rename POIs and export/import graph JSON.
+- Room boundary overlays: dashed polygons visualizing auto-detected rooms (toggleable in editor).
+- OSM footprint overlay & area-selection: quick import of building footprints for reference when mapping campus areas.
+- 3D Preview & GLB export: visualise analyzed graphs in 3D and export as a GLB model for external tools.
+
+Known / experimental notes
+- Auto-detect is experimental and may miss rooms or produce noisy polygons — manual editing tools are provided to correct results.
+- The frontend now includes a lightweight `ErrorBoundary` to surface runtime errors (you will see an error panel instead of a blank page).
+- The frontend's dev server port can vary (Vite default may be `5173` or `8080`); `npm run dev` prints the actual URL in the console.
 
 ## Technical Stack
 
@@ -254,6 +266,11 @@ Graph entities:
 - Applied graph algorithms (A*) to real navigation datasets
 - Built production-style deployment on Vercel + Render + Neon
 - Implemented modular architecture for future scaling (AI map parsing, role-based access, realtime updates)
+
+## Training & Model Priors
+
+- The project maintains a lightweight training catalog for layout priors derived from uploaded maps. The backend exposes endpoints to ingest catalog files and trigger retraining of the layout model (see `/api/v1/maps/training`).
+- Retraining and catalog management are optional but supported to improve the AI-assisted parsing accuracy over time (useful for production or larger datasets).
 
 ## Future Scope
 
