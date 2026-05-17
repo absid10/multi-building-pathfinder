@@ -54,6 +54,55 @@ const findNearestStairPair = (
   return { exitNode: bestExitNode, entryNode: bestEntryNode };
 };
 
+const isStairNodeId = (id: string) => /stairs/i.test(id);
+
+const normalizeStairNodeId = (id: string) =>
+  id
+    .split("_")
+    .filter((part) => part !== "B" && !/^f\d+$/i.test(part))
+    .join("_")
+    .toLowerCase();
+
+const getStairNodes = (map: any): Node[] =>
+  (map?.nodes || []).filter((n: Node) => isStairNodeId(n.id));
+
+const findNearestStairTransition = (
+  startNode: Node,
+  currentMap: any,
+  targetMap: any
+) => {
+  const currentStairs = getStairNodes(currentMap);
+  const targetStairs = getStairNodes(targetMap);
+
+  const targetByKey = new Map<string, Node>();
+  for (const n of targetStairs) {
+    targetByKey.set(normalizeStairNodeId(n.id), n);
+  }
+
+  let closestDist = Infinity;
+  let bestExitNode: Node | undefined;
+  let bestEntryNode: Node | undefined;
+
+  for (const exitNode of currentStairs) {
+    const entryNode = targetByKey.get(normalizeStairNodeId(exitNode.id));
+    if (!entryNode) continue;
+    const dist = Math.hypot(startNode.x - exitNode.x, startNode.y - exitNode.y);
+    if (dist < closestDist) {
+      closestDist = dist;
+      bestExitNode = exitNode;
+      bestEntryNode = entryNode;
+    }
+  }
+
+  if (bestExitNode && bestEntryNode) {
+    return { exitNode: bestExitNode, entryNode: bestEntryNode };
+  }
+
+  const fallbackCurrent = currentStairs.map((n) => n.id).sort();
+  const fallbackTarget = targetStairs.map((n) => n.id).sort();
+  return findNearestStairPair(startNode, fallbackCurrent, fallbackTarget, currentMap, targetMap);
+};
+
 
 const Index = () => {
   const ENABLE_EXPERIMENTAL_TRACKING =
@@ -197,18 +246,16 @@ const Index = () => {
       if (selectedBuilding === "buildingA") {
         const mapF1 = currentMapBuildings.buildingA.floors.floor1;
         const mapF2 = currentMapBuildings.buildingA.floors.floor2;
-        const f1Stairs = ["N_Stairs_1", "N_Stairs_2"];
-        const f2Stairs = ["f2_N_Stairs_1", "f2_N_Stairs_2"];
         
         let exitNode: Node | undefined;
         let entryNode: Node | undefined;
 
         if (currentFloor === "floor1" && destFloor === "floor2") {
-          const result = findNearestStairPair(startNode, f1Stairs, f2Stairs, mapF1, mapF2);
+          const result = findNearestStairTransition(startNode, mapF1, mapF2);
           exitNode = result.exitNode;
           entryNode = result.entryNode;
         } else {
-          const result = findNearestStairPair(startNode, f2Stairs, f1Stairs, mapF2, mapF1);
+          const result = findNearestStairTransition(startNode, mapF2, mapF1);
           exitNode = result.exitNode;
           entryNode = result.entryNode;
         }
@@ -219,41 +266,38 @@ const Index = () => {
         segments.push(...findPath(entryNode, endNode, targetMap.nodes, targetMap.edges));
         finalActiveFloors = ["floor1", "floor2"];
       } else {
-        const f1Stairs = ["B_N_Stairs_1", "B_N_Stairs_2"];
-        const f2Stairs = ["B_f2_N_Stairs_1", "B_f2_N_Stairs_2"];
-        const f3Stairs = ["B_f3_N_Stairs_1", "B_f3_N_Stairs_2"];
         const mapF1 = currentMapBuildings.buildingB.floors.floor1;
         const mapF2 = currentMapBuildings.buildingB.floors.floor2;
         const mapF3 = currentMapBuildings.buildingB.floors.floor3;
 
         if (currentFloor === "floor1" && destFloor === "floor2") {
-          const { exitNode, entryNode } = findNearestStairPair(startNode, f1Stairs, f2Stairs, mapF1, mapF2);
+          const { exitNode, entryNode } = findNearestStairTransition(startNode, mapF1, mapF2);
           segments.push(...findPath(startNode, exitNode, mapF1.nodes, mapF1.edges));
           segments.push(...findPath(entryNode, endNode, mapF2.nodes, mapF2.edges));
           finalActiveFloors = ["floor1", "floor2"];
         } else if (currentFloor === "floor2" && destFloor === "floor1") {
-          const { exitNode, entryNode } = findNearestStairPair(startNode, f2Stairs, f1Stairs, mapF2, mapF1);
+          const { exitNode, entryNode } = findNearestStairTransition(startNode, mapF2, mapF1);
           segments.push(...findPath(startNode, exitNode, mapF2.nodes, mapF2.edges));
           segments.push(...findPath(entryNode, endNode, mapF1.nodes, mapF1.edges));
           finalActiveFloors = ["floor1", "floor2"];
         } else if (currentFloor === "floor2" && destFloor === "floor3") {
-          const { exitNode, entryNode } = findNearestStairPair(startNode, f2Stairs, f3Stairs, mapF2, mapF3);
+          const { exitNode, entryNode } = findNearestStairTransition(startNode, mapF2, mapF3);
           segments.push(...findPath(startNode, exitNode, mapF2.nodes, mapF2.edges));
           segments.push(...findPath(entryNode, endNode, mapF3.nodes, mapF3.edges));
           finalActiveFloors = ["floor2", "floor3"];
         } else if (currentFloor === "floor3" && destFloor === "floor2") {
-          const { exitNode, entryNode } = findNearestStairPair(startNode, f3Stairs, f2Stairs, mapF3, mapF2);
+          const { exitNode, entryNode } = findNearestStairTransition(startNode, mapF3, mapF2);
           segments.push(...findPath(startNode, exitNode, mapF3.nodes, mapF3.edges));
           segments.push(...findPath(entryNode, endNode, mapF2.nodes, mapF2.edges));
           finalActiveFloors = ["floor2", "floor3"];
         } else if (currentFloor === "floor1" && destFloor === "floor3") {
-          const { exitNode: ex1, entryNode: en2 } = findNearestStairPair(startNode, f1Stairs, f2Stairs, mapF1, mapF2);
-          const { exitNode: ex2, entryNode: en3 } = findNearestStairPair(en2!, f2Stairs, f3Stairs, mapF2, mapF3);
+          const { exitNode: ex1, entryNode: en2 } = findNearestStairTransition(startNode, mapF1, mapF2);
+          const { exitNode: ex2, entryNode: en3 } = findNearestStairTransition(en2!, mapF2, mapF3);
           segments.push(...findPath(startNode, ex1!, mapF1.nodes, mapF1.edges), ...findPath(en2!, ex2!, mapF2.nodes, mapF2.edges), ...findPath(en3!, endNode, mapF3.nodes, mapF3.edges));
           finalActiveFloors = ["floor1", "floor2", "floor3"];
         } else if (currentFloor === "floor3" && destFloor === "floor1") {
-          const { exitNode: ex3, entryNode: en2 } = findNearestStairPair(startNode, f3Stairs, f2Stairs, mapF3, mapF2);
-          const { exitNode: ex2, entryNode: en1 } = findNearestStairPair(en2!, f2Stairs, f1Stairs, mapF2, mapF1);
+          const { exitNode: ex3, entryNode: en2 } = findNearestStairTransition(startNode, mapF3, mapF2);
+          const { exitNode: ex2, entryNode: en1 } = findNearestStairTransition(en2!, mapF2, mapF1);
           segments.push(...findPath(startNode, ex3!, mapF3.nodes, mapF3.edges), ...findPath(en2!, ex2!, mapF2.nodes, mapF2.edges), ...findPath(en1!, endNode, mapF1.nodes, mapF1.edges));
           finalActiveFloors = ["floor1", "floor2", "floor3"];
         }
@@ -271,12 +315,6 @@ const Index = () => {
     const combined: Node[] = [];
     let sourceExitNodeId: string;
     let finalActiveFloors: string[] = [];
-    
-    const b_f1Stairs = ["B_N_Stairs_1", "B_N_Stairs_2"];
-    const b_f2Stairs = ["B_f2_N_Stairs_1", "B_f2_N_Stairs_2"];
-    const b_f3Stairs = ["B_f3_N_Stairs_1", "B_f3_N_Stairs_2"];
-    const a_f1Stairs = ["N_Stairs_1", "N_Stairs_2"];
-    const a_f2Stairs = ["f2_N_Stairs_1", "f2_N_Stairs_2"];
 
     if (currentFloor === "floor1") {
       sourceExitNodeId = selectedBuilding === "buildingA" ? "N_Start" : "B_J_1";
@@ -286,9 +324,7 @@ const Index = () => {
     } else if (currentFloor === "floor2") {
       const mapF2 = currentMapBuildings[selectedBuilding].floors.floor2;
       const mapF1 = currentMapBuildings[selectedBuilding].floors.floor1;
-      const { exitNode: ex2, entryNode: en1 } = (selectedBuilding === "buildingA")
-        ? findNearestStairPair(startNode, a_f2Stairs, a_f1Stairs, mapF2, mapF1)
-        : findNearestStairPair(startNode, b_f2Stairs, b_f1Stairs, mapF2, mapF1);
+      const { exitNode: ex2, entryNode: en1 } = findNearestStairTransition(startNode, mapF2, mapF1);
       
       sourceExitNodeId = selectedBuilding === "buildingA" ? "N_Start" : "B_J_1";
       const entranceF1 = mapF1.nodes.find((n: Node) => n.id === sourceExitNodeId);
@@ -299,8 +335,8 @@ const Index = () => {
       const mapF3 = currentMapBuildings.buildingB.floors.floor3;
       const mapF2 = currentMapBuildings.buildingB.floors.floor2;
       const mapF1 = currentMapBuildings.buildingB.floors.floor1;
-      const { exitNode: ex3, entryNode: en2 } = findNearestStairPair(startNode, b_f3Stairs, b_f2Stairs, mapF3, mapF2);
-      const { exitNode: ex2, entryNode: en1 } = findNearestStairPair(en2!, b_f2Stairs, b_f1Stairs, mapF2, mapF1);
+      const { exitNode: ex3, entryNode: en2 } = findNearestStairTransition(startNode, mapF3, mapF2);
+      const { exitNode: ex2, entryNode: en1 } = findNearestStairTransition(en2!, mapF2, mapF1);
       sourceExitNodeId = "B_J_1";
       const entranceF1 = mapF1.nodes.find((n: Node) => n.id === sourceExitNodeId);
       combined.push(...findPath(startNode, ex3!, mapF3.nodes, mapF3.edges), ...findPath(en2!, ex2!, mapF2.nodes, mapF2.edges), ...findPath(en1!, entranceF1!, mapF1.nodes, mapF1.edges));
@@ -376,11 +412,8 @@ const Index = () => {
       } else if (destFloor === "floor2") {
         // @ts-ignore
         const destNode = mapF2.nodes.find((n: Node) => n.id === destNodeId)!;
-        
-        const f1Stairs = picked === 'buildingA' ? ["N_Stairs_1", "N_Stairs_2"] : ["B_N_Stairs_1", "B_N_Stairs_2"];
-        const f2Stairs = picked === 'buildingA' ? ["f2_N_Stairs_1", "f2_N_Stairs_2"] : ["B_f2_N_Stairs_1", "B_f2_N_Stairs_2"];
-        
-        const { exitNode: exitF1, entryNode: entryF2 } = findNearestStairPair(entryF1, f1Stairs, f2Stairs, mapF1, mapF2);
+
+        const { exitNode: exitF1, entryNode: entryF2 } = findNearestStairTransition(entryF1, mapF1, mapF2);
         if (!exitF1 || !entryF2) { toast.error("Stair node error on entry"); return; }
         
         segments.push(...findPath(entryF1, exitF1, mapF1.nodes, mapF1.edges));
@@ -391,14 +424,11 @@ const Index = () => {
       } else if (destFloor === "floor3" && picked === 'buildingB') { // Only B has Floor 3
         // @ts-ignore
         const destNode = mapF3.nodes.find((n: Node) => n.id === destNodeId)!;
-        const f1Stairs = ["B_N_Stairs_1", "B_N_Stairs_2"];
-        const f2Stairs = ["B_f2_N_Stairs_1", "B_f2_N_Stairs_2"];
-        const f3Stairs = ["B_f3_N_Stairs_1", "B_f3_N_Stairs_2"];
 
-        const { exitNode: exitF1, entryNode: entryF2_1 } = findNearestStairPair(entryF1, f1Stairs, f2Stairs, mapF1, mapF2);
+        const { exitNode: exitF1, entryNode: entryF2_1 } = findNearestStairTransition(entryF1, mapF1, mapF2);
         if (!exitF1 || !entryF2_1) { toast.error("Stair node error on entry (F1-F2)"); return; }
-        
-        const { exitNode: exitF2, entryNode: entryF3 } = findNearestStairPair(entryF2_1, f2Stairs, f3Stairs, mapF2, mapF3);
+
+        const { exitNode: exitF2, entryNode: entryF3 } = findNearestStairTransition(entryF2_1, mapF2, mapF3);
         if (!exitF2 || !entryF3) { toast.error("Stair node error on entry (F2-F3)"); return; }
 
         segments.push(...findPath(entryF1, exitF1, mapF1.nodes, mapF1.edges));
@@ -653,14 +683,12 @@ const Index = () => {
               };
 
               const getStairIds = (floor: FloorId) => {
-                if (floor === 'floor1') return ["B_N_Stairs_1", "B_N_Stairs_2", "N_Stairs_1", "N_Stairs_2"];
-                if (floor === 'floor2') return ["B_f2_N_Stairs_1", "B_f2_N_Stairs_2", "f2_N_Stairs_1", "f2_N_Stairs_2"];
-                if (floor === 'floor3') return ["B_f3_N_Stairs_1", "B_f3_N_Stairs_2"];
-                return [];
-              }
-              
-              const currentStairIds = getStairIds(currentFloor);
-              const nearStairs = fullPath.some((n) => currentStairIds.some(id => n.id.includes(id)));
+                const map = currentMapBuildings[selectedBuilding]?.floors?.[floor];
+                return getStairNodes(map).map((n) => n.id);
+              };
+
+              const currentStairIds = new Set(getStairIds(currentFloor));
+              const nearStairs = fullPath.some((n) => currentStairIds.has(n.id));
               if (!nearStairs) return null;
 
               const currentFloorNum = parseInt(currentFloor.replace('floor', ''));

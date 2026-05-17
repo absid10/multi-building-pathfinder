@@ -1,8 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Home, Navigation, Edit3, X, Save, MousePointer2, GitCommit, GitPullRequest, Trash2, Plus, MapPin, ZoomIn, ZoomOut } from 'lucide-react';
+import { ArrowLeft, Home, Navigation, Edit3 } from 'lucide-react';
+import { toast } from 'sonner';
 import { API_BASE } from '../config/api';
 import { findNearestNode, findPath, Node, POI } from '../utils/pathfinding';
+import { detectRoomsFromImage } from '../utils/autoDetectRooms';
+import MapEditorToolbar from '../components/MapEditorToolbar';
+import type { EditTool } from '../components/MapEditorToolbar';
 
 type GraphEdge = {
   from: string;
@@ -12,12 +16,17 @@ type GraphEdge = {
   bidirectional?: boolean;
 };
 
+type GraphNode = Node & {
+  kind?: string;
+  polygon?: { x: number; y: number }[];
+};
+
 type FloorGraph = {
   id: string;
   name: string;
   width: number;
   height: number;
-  nodes: (Node & { kind?: string })[];
+  nodes: GraphNode[];
   edges: GraphEdge[];
   pois: POI[];
 };
@@ -31,7 +40,7 @@ type UploadedGraph = {
   buildings: BuildingGraph[];
 };
 
-type EditTool = 'select' | 'node' | 'path' | 'delete';
+const CLICK_SUPPRESS_MS = 180;
 
 const getAuthHeader = () => {
   const token = localStorage.getItem('authToken');
@@ -63,6 +72,16 @@ export default function UploadedMapNavigatorPage() {
   const [draftPoiName, setDraftPoiName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [imageOpacity, setImageOpacity] = useState(0.5);
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [autoDetectOnOpen, setAutoDetectOnOpen] = useState(false);
+  const [showRoomOverlays, setShowRoomOverlays] = useState(true);
+
+  // Drag state (refs to avoid re-renders during drag)
+  const dragNodeId = useRef<string | null>(null);
+  const dragMoved = useRef(false);
+  const suppressClickUntil = useRef(0);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const autoDetectedFloorKey = useRef<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -138,31 +157,180 @@ export default function UploadedMapNavigatorPage() {
     setGraph(newGraph);
   };
 
+  // SVG coordinate helper
+  const toSvgCoords = useCallback((clientX: number, clientY: number) => {
+    if (!svgRef.current || !floor) return null;
+    const bounds = svgRef.current.getBoundingClientRect();
+    return {
+      x: Math.round(((clientX - bounds.left) / bounds.width) * (floor.width || 1000)),
+      y: Math.round(((clientY - bounds.top) / bounds.height) * (floor.height || 800)),
+    };
+  }, [floor]);
+
   const handleCanvasClick = (e: React.MouseEvent<SVGSVGElement>) => {
     if (!floor) return;
-    const bounds = e.currentTarget.getBoundingClientRect();
-    const x = Math.round(((e.clientX - bounds.left) / bounds.width) * (floor.width || 1000));
-    const y = Math.round(((e.clientY - bounds.top) / bounds.height) * (floor.height || 800));
+    if (Date.now() < suppressClickUntil.current) return;
+    const pt = toSvgCoords(e.clientX, e.clientY);
+    if (!pt) return;
 
     if (!editMode) {
       if (path.length > 1) return;
-      const location = { x, y };
-      setCurrentLocation(location);
-      if (selectedDestination) computeRoute(location, selectedDestination);
+      setCurrentLocation(pt);
+      if (selectedDestination) computeRoute(pt, selectedDestination);
       return;
     }
 
-    if (editTool === 'node') {
-      const newNodeId = `n_${Date.now()}`;
+    const nodeKindMap: Record<string, string> = { room: 'room', stairs: 'stairs', entrance: 'entrance' };
+    const kind = nodeKindMap[editTool];
+    if (kind) {
+      const newId = `n_${Date.now()}`;
+      const label = kind === 'room' ? `Room ${(floor.pois.length || 0) + 1}` :
+                    kind === 'stairs' ? `Stairs` : `Entrance`;
       updateCurrentFloor((f) => ({
         ...f,
-        nodes: [...f.nodes, { id: newNodeId, x, y, kind: 'corridor' }]
+        nodes: [...f.nodes, { id: newId, x: pt.x, y: pt.y, kind }],
+        pois: [...f.pois, { id: `poi_${Date.now()}`, name: label, node: newId, icon: kind === 'stairs' ? 'stairs' : kind === 'entrance' ? 'door' : 'map-pin' }],
       }));
+      toast.success(`${label} placed`);
     } else if (editTool === 'select' || editTool === 'path' || editTool === 'delete') {
       setSelectedNode(null);
       setEditingPoi(null);
     }
   };
+
+  // ── Drag handlers ───────────────────────────────────────────────────
+  const handlePointerDown = (e: React.PointerEvent, nodeId: string) => {
+    if (!editMode || editTool !== 'select') return;
+    dragNodeId.current = nodeId;
+    dragMoved.current = false;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  useEffect(() => {
+    if (!editMode) return;
+    const onMove = (e: PointerEvent) => {
+      if (!dragNodeId.current || !floor) return;
+      const pt = toSvgCoords(e.clientX, e.clientY);
+      if (!pt) return;
+      dragMoved.current = true;
+      updateCurrentFloor((f) => ({
+        ...f,
+        nodes: f.nodes.map((n) => n.id === dragNodeId.current ? { ...n, x: pt.x, y: pt.y } : n),
+      }));
+    };
+    const onUp = () => {
+      if (!dragNodeId.current) return;
+      if (dragMoved.current) {
+        suppressClickUntil.current = Date.now() + CLICK_SUPPRESS_MS;
+        toast.success('Node repositioned');
+      }
+      dragNodeId.current = null;
+      dragMoved.current = false;
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+  }, [editMode, floor, toSvgCoords]);
+
+  // ── Auto-detect ─────────────────────────────────────────────────────
+  const handleAutoDetect = useCallback(() => {
+    if (!floor || !backgroundImageUrl) return;
+    setIsDetecting(true);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const result = detectRoomsFromImage(img, { width: floor.width || 1000, height: floor.height || 800 });
+        if (result.nodes.length < 2) {
+          toast.warning('Auto-detect found too few rooms. Try manual mapping instead.');
+          setIsDetecting(false);
+          return;
+        }
+        updateCurrentFloor((f) => ({
+          ...f,
+          nodes: result.nodes.map((n) => ({ id: n.id, x: n.x, y: n.y, kind: n.kind, polygon: n.polygon })),
+          edges: result.edges.map((e) => ({ from: e.from, to: e.to, distance_m: e.weight, bidirectional: true })),
+          pois: result.nodes.filter((n) => n.kind === 'room').map((n) => ({ id: `poi_${n.id}`, name: n.label, node: n.id, icon: 'map-pin' })),
+        }));
+        toast.success(`Detected ${result.nodes.length} rooms, ${result.edges.length} paths`);
+      } catch (err) {
+        toast.error('Auto-detect failed. Use manual mapping tools.');
+        console.error(err);
+      }
+      setIsDetecting(false);
+    };
+    img.onerror = () => { toast.error('Could not load image for detection'); setIsDetecting(false); };
+    img.src = backgroundImageUrl;
+  }, [floor, backgroundImageUrl]);
+
+  // ── Export / Import graph ───────────────────────────────────────────
+  const handleExportGraph = () => {
+    if (!graph) return;
+    const blob = new Blob([JSON.stringify(graph, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${mapName.replace(/\s+/g, '-').toLowerCase()}-graph.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast.success('Graph exported');
+  };
+
+  const handleImportGraph = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const payload = JSON.parse(reader.result as string);
+        if (payload.buildings) {
+          setGraph(payload);
+          toast.success('Graph imported');
+        } else if (payload.nodes) {
+          // Simple format — apply to current floor
+          updateCurrentFloor((f) => ({
+            ...f,
+            nodes: payload.nodes || f.nodes,
+            edges: payload.edges || f.edges,
+            pois: payload.pois || f.pois,
+          }));
+          toast.success('Floor graph imported');
+        }
+      } catch { toast.error('Invalid JSON file'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  // Background image URL
+  const backgroundImageUrl = mapFileName 
+    ? `${API_BASE}/maps/files/${encodeURIComponent(mapFileName)}` 
+    : null;
+
+  useEffect(() => {
+    if (!editMode || !autoDetectOnOpen || !backgroundImageUrl || !floor || isDetecting) return;
+    if (floor.nodes.length > 0 || floor.edges.length > 0 || floor.pois.length > 0) return;
+
+    const floorKey = `${selectedBuilding}:${selectedFloor}:${backgroundImageUrl}`;
+    if (autoDetectedFloorKey.current === floorKey) return;
+
+    autoDetectedFloorKey.current = floorKey;
+    handleAutoDetect();
+  }, [
+    editMode,
+    autoDetectOnOpen,
+    backgroundImageUrl,
+    floor,
+    isDetecting,
+    selectedBuilding,
+    selectedFloor,
+    handleAutoDetect,
+  ]);
 
   const handleNodeClick = (e: React.MouseEvent, nodeId: string) => {
     if (!editMode || !floor) return;
@@ -275,11 +443,6 @@ export default function UploadedMapNavigatorPage() {
     }
   };
 
-  // Background image URL
-  const backgroundImageUrl = mapFileName 
-    ? `${API_BASE}/maps/files/${encodeURIComponent(mapFileName)}` 
-    : null;
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -337,119 +500,57 @@ export default function UploadedMapNavigatorPage() {
               <ArrowLeft className="h-4 w-4 text-slate-400" /> Dashboard
             </button>
           </div>
-          
-          <div className="flex items-center gap-3">
-            {editMode && (
-              <button 
-                onClick={syncGraphToBackend} 
-                disabled={isSaving}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition shadow-sm disabled:opacity-50"
-              >
-                <Save className="h-4 w-4"/> {isSaving ? "Saving..." : "Save Changes"}
-              </button>
-            )}
-
+          {!editMode && (
             <button 
-              onClick={() => {
-                setEditMode(!editMode);
-                setEditingPoi(null);
-                setSelectedNode(null);
-                setCurrentLocation(null);
-                setPath([]);
-                setEditTool('select');
-              }} 
-              className={`inline-flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition-all shadow-sm ${
-                editMode 
-                ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700' 
-                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300'
-              }`}
-            >
-              {editMode ? <><X className="h-4 w-4"/> Exit Editor</> : <><Edit3 className="h-4 w-4"/> Map Editor</>}
+              onClick={() => { setEditMode(true); setEditTool('select'); setCurrentLocation(null); setPath([]); }} 
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 px-5 py-2.5 text-sm font-semibold transition-all shadow-sm">
+              <Edit3 className="h-4 w-4" /> Map Editor
             </button>
-          </div>
+          )}
         </div>
 
         {/* Map Info + Building/Floor Selector */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h1 className="text-2xl font-bold text-slate-900">{mapName}</h1>
-          
-          {/* Building Selector */}
           {graph.buildings.length > 1 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {graph.buildings.map((b, bIndex) => (
-                <button
-                  key={b.name}
-                  onClick={() => {
-                    setSelectedBuilding(bIndex);
-                    setSelectedFloor(0);
-                    setCurrentLocation(null);
-                    setSelectedDestination('');
-                    setPath([]);
-                  }}
-                  className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${bIndex === selectedBuilding ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                >
+                <button key={b.name} onClick={() => { setSelectedBuilding(bIndex); setSelectedFloor(0); setCurrentLocation(null); setSelectedDestination(''); setPath([]); }}
+                  className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${bIndex === selectedBuilding ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                   {b.name}
                 </button>
               ))}
             </div>
           )}
-
-          {/* Floor Selector */}
           <div className="mt-3 flex flex-wrap gap-2">
             {building.floors.map((f, fIndex) => (
-              <button
-                key={f.id}
-                onClick={() => {
-                  setSelectedFloor(fIndex);
-                  setCurrentLocation(null);
-                  setSelectedDestination('');
-                  setPath([]);
-                  setEditingPoi(null);
-                }}
-                className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${fIndex === selectedFloor ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-              >
+              <button key={f.id} onClick={() => { setSelectedFloor(fIndex); setCurrentLocation(null); setSelectedDestination(''); setPath([]); setEditingPoi(null); }}
+                className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${fIndex === selectedFloor ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                 {f.name}
               </button>
             ))}
           </div>
-
-          {/* Navigation Controls (non-edit mode) */}
           {!editMode && (
             <div className="mt-5 flex flex-wrap items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
               <div className="flex-1 min-w-[200px]">
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Destination</label>
-                <select
-                  value={selectedDestination}
-                  onChange={(e) => {
-                    const dest = e.target.value;
-                    setSelectedDestination(dest);
-                    if (currentLocation && dest) computeRoute(currentLocation, dest);
-                  }}
-                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition bg-white"
-                >
+                <select value={selectedDestination} onChange={(e) => { const dest = e.target.value; setSelectedDestination(dest); if (currentLocation && dest) computeRoute(currentLocation, dest); }}
+                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition bg-white">
                   <option value="">Select a room to navigate to...</option>
-                  {floor.pois.map((poi) => (
-                    <option key={poi.id} value={poi.id}>{poi.name}</option>
-                  ))}
+                  {floor.pois.map((poi) => (<option key={poi.id} value={poi.id}>{poi.name}</option>))}
                 </select>
               </div>
               <div className="flex gap-2 items-end pt-5">
-                <button
-                  onClick={() => { setCurrentLocation(null); setSelectedDestination(''); setPath([]); }}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition shadow-sm"
-                >
-                  Reset
-                </button>
+                <button onClick={() => { setCurrentLocation(null); setSelectedDestination(''); setPath([]); }}
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition shadow-sm">Reset</button>
               </div>
               {path.length > 1 && (
                 <div className="flex items-center gap-2 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 border border-emerald-200 rounded-xl shadow-sm mt-2 sm:mt-0">
-                  <Navigation className="h-4 w-4 text-emerald-500" /> Route found! Click map to set your location.
+                  <Navigation className="h-4 w-4 text-emerald-500" /> Route found!
                 </div>
               )}
               {!currentLocation && selectedDestination && (
-                <div className="text-xs text-blue-600 font-medium mt-1">
-                  👆 Click on the map to set your current position
-                </div>
+                <div className="text-xs text-blue-600 font-medium mt-1">👆 Click on the map to set your current position</div>
               )}
             </div>
           )}
@@ -457,53 +558,40 @@ export default function UploadedMapNavigatorPage() {
 
         {/* Editor Toolbar */}
         {editMode && (
-          <div className="flex flex-wrap items-center gap-2 p-4 bg-white border border-blue-200 rounded-2xl shadow-sm">
-            <span className="text-sm font-bold text-blue-900 mr-3 uppercase tracking-wider">Tools:</span>
-            
-            {[
-              { id: 'select' as EditTool, icon: MousePointer2, label: 'Select' },
-              { id: 'node' as EditTool, icon: GitCommit, label: 'Add Node' },
-              { id: 'path' as EditTool, icon: GitPullRequest, label: 'Link Path' },
-              { id: 'delete' as EditTool, icon: Trash2, label: 'Delete' },
-            ].map(tool => (
-              <button key={tool.id} onClick={() => setEditTool(tool.id)} className={`px-4 py-2.5 flex items-center gap-2 text-sm rounded-xl font-medium transition-all ${editTool === tool.id ? (tool.id === 'delete' ? 'bg-red-600 text-white shadow-md' : 'bg-blue-600 text-white shadow-md') : (tool.id === 'delete' ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200')}`}>
-                <tool.icon className="h-4 w-4" /> {tool.label}
-              </button>  
-            ))}
-
-            {editTool === 'select' && selectedNode && !floor.pois.find(p => p.node === selectedNode) && (
-              <button onClick={handleCreateRoomFromSelectedNode} className="ml-auto border-2 border-emerald-500 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
-                <Plus className="h-4 w-4" /> Make Room
-              </button>
-            )}
-
-            {/* Image opacity control */}
-            {backgroundImageUrl && (
-              <div className="ml-auto flex items-center gap-2">
-                <span className="text-xs text-slate-500 font-medium">Image:</span>
-                <input type="range" min="0" max="100" value={imageOpacity * 100} onChange={(e) => setImageOpacity(Number(e.target.value) / 100)} className="w-24 h-1.5 accent-blue-600" />
-                <span className="text-xs text-slate-500 w-8">{Math.round(imageOpacity * 100)}%</span>
-              </div>
-            )}
-            
-            <div className="w-full text-xs text-slate-500 mt-2 font-medium bg-blue-50 p-3 rounded-xl border border-blue-100">
-              {editTool === 'select' && "Click a node to select it. Click a room label to rename it."}
-              {editTool === 'node' && "Click anywhere on the canvas to place a new routing node."}
-              {editTool === 'path' && "Click Node A, then Node B to create a walking path between them."}
-              {editTool === 'delete' && "Click any node or path line to remove it permanently."}
-            </div>
-          </div>
+          <MapEditorToolbar
+            editTool={editTool}
+            onToolChange={setEditTool}
+            onAutoDetect={handleAutoDetect}
+            autoDetectOnOpen={autoDetectOnOpen}
+            onAutoDetectOnOpenChange={setAutoDetectOnOpen}
+            showRoomOverlays={showRoomOverlays}
+            onShowRoomOverlaysChange={setShowRoomOverlays}
+            onExportGraph={handleExportGraph}
+            onImportGraph={handleImportGraph}
+            onSave={syncGraphToBackend}
+            onExit={() => { setEditMode(false); setEditingPoi(null); setSelectedNode(null); setEditTool('select'); }}
+            isSaving={isSaving}
+            isDetecting={isDetecting}
+            imageOpacity={imageOpacity}
+            onImageOpacityChange={setImageOpacity}
+            hasBackgroundImage={!!backgroundImageUrl}
+            nodeCount={floor.nodes.length}
+            edgeCount={floor.edges.length}
+            poiCount={floor.pois.length}
+          />
         )}
 
         {/* Map Canvas */}
         <div className={`rounded-2xl border-2 ${editMode ? 'border-blue-400 shadow-blue-100 shadow-lg' : 'border-slate-200'} bg-white p-3 transition-all duration-300 relative overflow-hidden`}>
           <svg 
+            ref={svgRef}
             viewBox={`0 0 ${floor.width || 1000} ${floor.height || 800}`} 
             className={`w-full rounded-xl bg-slate-50 shadow-inner border border-slate-100 ${
-               editMode && editTool === 'node' ? 'cursor-crosshair' : 
-               editMode && editTool === 'delete' ? "cursor-not-allowed" : 'cursor-default'
+               editMode && ['room','stairs','entrance'].includes(editTool) ? 'cursor-crosshair' : 
+               editMode && editTool === 'delete' ? 'cursor-not-allowed' :
+               editMode && editTool === 'select' ? 'cursor-default' : 'cursor-default'
             }`} 
-            style={{ minHeight: '480px', maxHeight: '640px' }}
+            style={{ minHeight: '480px', maxHeight: '640px', touchAction: 'none' }}
             onClick={handleCanvasClick}
           >
             {/* Background floor plan image */}
@@ -537,6 +625,23 @@ export default function UploadedMapNavigatorPage() {
               if (!n) return null;
               return <circle cx={n.x} cy={n.y} r={16} fill="none" stroke="#6366f1" strokeWidth={2.5} className="animate-ping" />;
             })()}
+
+            {/* Auto-detected room boundary overlays */}
+            {showRoomOverlays && floor.nodes.map((n) => {
+              if (!n.polygon || n.polygon.length < 3) return null;
+              const points = n.polygon.map((p) => `${Math.round(p.x)},${Math.round(p.y)}`).join(' ');
+              return (
+                <polygon
+                  key={`poly-${n.id}`}
+                  points={points}
+                  fill="rgba(16,185,129,0.08)"
+                  stroke="rgba(16,185,129,0.85)"
+                  strokeWidth={1.5}
+                  strokeDasharray="6,4"
+                  style={{ pointerEvents: 'none' }}
+                />
+              );
+            })}
             
             {/* Draw Edges */}
             {floor.edges.map((edge, idx) => {
@@ -565,19 +670,25 @@ export default function UploadedMapNavigatorPage() {
                const isPOI = floor.pois.some(p => p.node === n.id);
                if (isPOI) return null;
                const isStairs = n.kind === 'stairs';
+               const isEntrance = n.kind === 'entrance';
+               const fillColor = isSelected ? '#6366f1' : isStairs ? '#f59e0b' : isEntrance ? '#06b6d4' : '#64748b';
                
                return (
-                  <g key={n.id} onClick={(e) => handleNodeClick(e, n.id)} className={editMode ? "cursor-pointer" : ""}>
+                  <g key={n.id} onClick={(e) => handleNodeClick(e, n.id)} className={editMode ? 'cursor-pointer' : ''}>
                     <circle 
                        cx={n.x} cy={n.y} 
-                       r={isSelected ? 8 : (isStairs ? 6 : 5)} 
-                       fill={isSelected ? "#6366f1" : (isStairs ? "#f59e0b" : "#64748b")} 
-                       stroke={isSelected ? "#c7d2fe" : "none"}
+                       r={isSelected ? 8 : (isStairs || isEntrance ? 7 : 5)} 
+                       fill={fillColor}
+                       stroke={isSelected ? '#c7d2fe' : 'none'}
                        strokeWidth={isSelected ? 3 : 0}
-                       className={editMode ? "hover:fill-blue-400 transition-all" : ""}
+                       className={editMode && editTool === 'select' ? 'cursor-grab hover:fill-blue-400 transition-all' : editMode ? 'hover:fill-blue-400 transition-all' : ''}
+                       onPointerDown={(e) => handlePointerDown(e, n.id)}
                     />
                     {isStairs && !editMode && (
                       <text x={n.x + 10} y={n.y + 4} fontSize={10} fill="#92400e" fontWeight="600">🪜</text>
+                    )}
+                    {isEntrance && !editMode && (
+                      <text x={n.x + 10} y={n.y + 4} fontSize={10} fill="#0891b2" fontWeight="600">🚪</text>
                     )}
                   </g>
                )
@@ -595,19 +706,17 @@ export default function UploadedMapNavigatorPage() {
                 <g 
                   key={poi.id} 
                   onClick={(e) => handleNodeClick(e, node.id)}
-                  className={editMode ? "cursor-pointer group" : ""}
+                  className={editMode ? 'cursor-pointer group' : ''}
                 >
-                  {/* POI background glow */}
-                  <circle cx={node.x} cy={node.y} r={14} fill={isSelected ? "#6366f120" : "#10b98120"} />
-                  
+                  <circle cx={node.x} cy={node.y} r={14} fill={isSelected ? '#6366f120' : '#10b98120'} />
                   <circle 
-                     cx={node.x} 
-                     cy={node.y} 
+                     cx={node.x} cy={node.y} 
                      r={isSelected ? 10 : 8} 
-                     fill={isSelected || isEditing ? "#6366f1" : "#10b981"} 
-                     className={editMode && !isEditing ? "group-hover:fill-blue-500 transition-colors" : "transition-colors"} 
-                     stroke={isSelected ? "#c7d2fe" : "#ffffff"}
+                     fill={isSelected || isEditing ? '#6366f1' : node?.kind === 'stairs' ? '#f59e0b' : node?.kind === 'entrance' ? '#06b6d4' : '#10b981'} 
+                     className={editMode && !isEditing && editTool === 'select' ? 'cursor-grab group-hover:fill-blue-500 transition-colors' : editMode && !isEditing ? 'group-hover:fill-blue-500 transition-colors' : 'transition-colors'} 
+                     stroke={isSelected ? '#c7d2fe' : '#ffffff'}
                      strokeWidth={isSelected ? 3 : 2}
+                     onPointerDown={(e) => handlePointerDown(e, node.id)}
                   />
                   
                   {isEditing ? (
